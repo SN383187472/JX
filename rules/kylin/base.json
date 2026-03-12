@@ -1,0 +1,173 @@
+{
+  "name": "麒麟系统等保基线检查",
+  "version": "1.0.0",
+  "description": "基于等保2.0要求的麒麟操作系统安全基线检查规则",
+  "compliance": ["等保2.0", "关保"],
+  "rules": [
+    {
+      "id": "KYLIN-001",
+      "name": "密码最大有效期检查",
+      "description": "检查密码最大使用天数是否不超过90天",
+      "command": "grep '^PASS_MAX_DAYS' /etc/login.defs | awk '{print $2}'",
+      "expected": "90",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "等保2.0-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "KYLIN-002",
+      "name": "密码最小长度检查",
+      "description": "检查密码最小长度是否不少于8位",
+      "command": "grep '^PASS_MIN_LEN' /etc/login.defs | awk '{print $2}'",
+      "expected": "8",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "等保2.0-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "KYLIN-003",
+      "name": "禁止root远程登录",
+      "description": "检查是否禁止root用户远程SSH登录",
+      "command": "grep '^PermitRootLogin' /etc/ssh/sshd_config",
+      "expected": "PermitRootLogin no",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "等保2.0-安全计算环境-访问控制"
+    },
+    {
+      "id": "KYLIN-004",
+      "name": "禁止空密码登录",
+      "description": "检查是否禁止空密码用户登录",
+      "command": "grep '^PermitEmptyPasswords' /etc/ssh/sshd_config",
+      "expected": "PermitEmptyPasswords no",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "等保2.0-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "KYLIN-005",
+      "name": "SSH协议版本检查",
+      "description": "检查SSH协议版本是否为2",
+      "command": "grep '^Protocol' /etc/ssh/sshd_config || echo 'Protocol 2'",
+      "expected": "2",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "通信安全",
+      "compliance": "等保2.0-安全通信网络"
+    },
+    {
+      "id": "KYLIN-006",
+      "name": "防火墙状态检查",
+      "description": "检查防火墙是否启用",
+      "command": "systemctl is-active firewalld 2>/dev/null || systemctl is-active iptables 2>/dev/null || echo 'inactive'",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "边界防护",
+      "compliance": "等保2.0-安全区域边界"
+    },
+    {
+      "id": "KYLIN-007",
+      "name": "登录失败锁定策略",
+      "description": "检查是否配置登录失败锁定策略",
+      "command": "grep 'auth required' /etc/pam.d/login 2>/dev/null || grep 'auth required' /etc/pam.d/sshd 2>/dev/null",
+      "expected": "pam_faillock.so",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "KYLIN-008",
+      "name": "检查是否存在空密码账户",
+      "description": "检查/etc/shadow中是否存在空密码账户",
+      "command": "awk -F: '($2 == \"\") {print $1}' /etc/shadow",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "等保2.0-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "KYLIN-009",
+      "name": "检查UID为0的账户",
+      "description": "除root外不应有其他UID为0的账户",
+      "command": "awk -F: '($3 == 0) {print $1}' /etc/passwd",
+      "expected": "root",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "等保2.0-安全计算环境-访问控制"
+    },
+    {
+      "id": "KYLIN-010",
+      "name": "检查历史命令条数限制",
+      "description": "检查HISTSIZE是否设置合理",
+      "command": "grep '^HISTSIZE' /etc/profile | head -1",
+      "expected": "HISTSIZE",
+      "check_type": "contains",
+      "severity": "low",
+      "category": "审计日志",
+      "compliance": "等保2.0-安全计算环境-安全审计"
+    },
+    {
+      "id": "KYLIN-011",
+      "name": "检查关键文件权限",
+      "description": "检查/etc/passwd文件权限是否为644",
+      "command": "stat -c '%a' /etc/passwd",
+      "expected": "644",
+      "check_type": "equals",
+      "severity": "medium",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "KYLIN-012",
+      "name": "检查shadow文件权限",
+      "description": "检查/etc/shadow文件权限是否为000或400",
+      "command": "stat -c '%a' /etc/shadow",
+      "expected": "0",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "KYLIN-013",
+      "name": "检查不必要的服务",
+      "description": "检查是否关闭不必要的网络服务",
+      "command": "systemctl list-units --type=service --state=running | grep -E 'telnet|ftp|rsh|rlogin'",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "medium",
+      "category": "服务安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "KYLIN-014",
+      "name": "检查审计服务状态",
+      "description": "检查auditd审计服务是否运行",
+      "command": "systemctl is-active auditd 2>/dev/null || echo 'inactive'",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "审计日志",
+      "compliance": "等保2.0-安全计算环境-安全审计"
+    },
+    {
+      "id": "KYLIN-015",
+      "name": "检查超时自动注销",
+      "description": "检查是否配置登录超时自动注销",
+      "command": "grep 'TMOUT' /etc/profile",
+      "expected": "TMOUT",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "会话安全",
+      "compliance": "等保2.0-安全计算环境"
+    }
+  ]
+}

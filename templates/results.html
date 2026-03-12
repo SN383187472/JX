@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫描结果 - {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .checkbox-col {
+            width: 40px;
+            text-align: center;
+        }
+        .checkbox-col input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .btn-toolbar {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-danger:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>🔐 基线核查</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/dashboard">📊 控制面板</a></li>
+                <li><a href="/targets">🖥️ 目标管理</a></li>
+                <li><a href="/scan">🔍 安全扫描</a></li>
+                <li><a href="/results" class="active">📋 扫描结果</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <header>
+                <h1>扫描结果</h1>
+                <button onclick="refreshResults()" class="btn-secondary">🔄 刷新</button>
+            </header>
+            
+            <!-- 工具栏 -->
+            <div class="btn-toolbar">
+                <button onclick="batchDelete()" class="btn-danger" id="batchDeleteBtn" disabled>🗑️ 批量删除</button>
+                <span id="selectedCount" style="color:#666;line-height:32px;"></span>
+            </div>
+            
+            <!-- 结果列表 -->
+            <div class="results-list">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col"><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
+                            <th>ID</th>
+                            <th>目标</th>
+                            <th>类型</th>
+                            <th>扫描时间</th>
+                            <th>结果</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTable">
+                        <tr><td colspan="7">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 详情弹窗 -->
+            <div id="detailModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="modalTitle">扫描详情</h2>
+                        <button onclick="closeModal()" class="btn-close">×</button>
+                    </div>
+                    <div id="modalBody" class="modal-body">
+                        <!-- 详情内容 -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // 类型映射
+        const typeNames = {
+            'kylin': '麒麟系统',
+            'dameng': '达梦数据库',
+            'mysql': 'MySQL数据库',
+            'oracle': 'Oracle数据库',
+            'windows7': 'Windows 7',
+            'windows10': 'Windows 10',
+            'windows2012': 'Windows Server 2012',
+            'centos': 'CentOS',
+            'ubuntu': 'Ubuntu'
+        };
+        
+        let allResults = [];
+        let selectedIds = new Set();
+        
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/results');
+                const result = await response.json();
+                
+                allResults = result.data || [];
+                selectedIds.clear();
+                updateSelection();
+                
+                const tbody = document.getElementById('resultsTable');
+                
+                if (allResults.length > 0) {
+                    tbody.innerHTML = allResults.map(r => `
+                        <tr>
+                            <td class="checkbox-col">
+                                <input type="checkbox" class="result-checkbox" value="${r.id}" 
+                                       ${selectedIds.has(r.id) ? 'checked' : ''} 
+                                       onchange="toggleSelect(${r.id})">
+                            </td>
+                            <td>${r.id}</td>
+                            <td>${r.target_name}</td>
+                            <td><span class="badge">${typeNames[r.target_type] || r.target_type}</span></td>
+                            <td>${new Date(r.scan_time).toLocaleString()}</td>
+                            <td>
+                                <span class="badge success">✓ ${r.passed_rules}</span>
+                                <span class="badge danger">✗ ${r.failed_rules}</span>
+                            </td>
+                            <td>
+                                <button onclick="showDetail(${r.id})" class="btn-primary btn-sm">详情</button>
+                                <button onclick="downloadExcel(${r.id})" class="btn-secondary btn-sm">📊</button>
+                                <button onclick="downloadWord(${r.id})" class="btn-secondary btn-sm">📄</button>
+                                <button onclick="deleteResult(${r.id})" class="btn-danger btn-sm">删除</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7">暂无数据</td></tr>';
+                }
+            } catch (error) {
+                console.error('加载结果失败:', error);
+            }
+        }
+        
+        function refreshResults() {
+            loadResults();
+        }
+        
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.result-checkbox');
+            
+            if (selectAllCheckbox.checked) {
+                allResults.forEach(r => selectedIds.add(r.id));
+            } else {
+                selectedIds.clear();
+            }
+            
+            checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+            updateSelection();
+        }
+        
+        function toggleSelect(id) {
+            if (selectedIds.has(id)) {
+                selectedIds.delete(id);
+            } else {
+                selectedIds.add(id);
+            }
+            updateSelection();
+        }
+        
+        function updateSelection() {
+            const count = selectedIds.size;
+            const countSpan = document.getElementById('selectedCount');
+            const deleteBtn = document.getElementById('batchDeleteBtn');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            
+            if (count > 0) {
+                countSpan.textContent = `已选择 ${count} 项`;
+                deleteBtn.disabled = false;
+            } else {
+                countSpan.textContent = '';
+                deleteBtn.disabled = true;
+            }
+            
+            // 更新全选状态
+            if (allResults.length > 0 && count === allResults.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (count > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+        }
+        
+        async function deleteResult(id) {
+            if (!confirm('确定要删除此扫描结果吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/results/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    loadResults();
+                } else {
+                    alert('删除失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+        
+        async function batchDelete() {
+            if (selectedIds.size === 0) return;
+            
+            if (!confirm(`确定要删除选中的 ${selectedIds.size} 条扫描结果吗？`)) return;
+            
+            try {
+                const ids = Array.from(selectedIds);
+                const response = await fetch('/api/results/batch-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: ids })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`成功删除 ${result.deleted_count} 条记录`);
+                    loadResults();
+                } else {
+                    alert('删除失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+        
+        async function showDetail(id) {
+            try {
+                const response = await fetch(`/api/results/${id}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    
+                    document.getElementById('modalTitle').textContent = 
+                        `${data.target_name} - 扫描详情`;
+                    
+                    let html = `
+                        <div class="detail-summary">
+                            <p><strong>扫描时间:</strong> ${new Date(data.scan_time).toLocaleString()}</p>
+                            <p><strong>总规则:</strong> ${data.total_rules} | 
+                               <span class="success">通过: ${data.passed_rules}</span> | 
+                               <span class="danger">不符合: ${data.failed_rules}</span></p>
+                            <p>
+                                <button onclick="downloadExcel(${id})" class="btn-secondary btn-sm">📊 下载Excel</button>
+                                <button onclick="downloadWord(${id})" class="btn-secondary btn-sm">📄 下载Word</button>
+                            </p>
+                        </div>
+                        <table class="data-table detail-table">
+                            <thead>
+                                <tr>
+                                    <th>规则</th>
+                                    <th>状态</th>
+                                    <th>命令</th>
+                                    <th>输出</th>
+                                    <th>分析</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    data.details.forEach(d => {
+                        const statusClass = d.status === 'pass' ? 'success' : (d.status === 'fail' ? 'danger' : 'warning');
+                        const statusText = d.status === 'pass' ? '✓ 符合' : (d.status === 'fail' ? '✗ 不符合' : '⚠ 错误');
+                        
+                        html += `
+                            <tr class="${statusClass}">
+                                <td>
+                                    <strong>${d.rule_name}</strong>
+                                    <br><small>${d.description}</small>
+                                    <br><small class="severity severity-${d.severity}">[${d.severity}] ${d.category}</small>
+                                </td>
+                                <td><span class="badge ${statusClass}">${statusText}</span></td>
+                                <td><code>${d.command || '-'}</code></td>
+                                <td><pre>${d.output || '-'}</pre></td>
+                                <td>${d.analysis || '-'}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    
+                    document.getElementById('modalBody').innerHTML = html;
+                    document.getElementById('detailModal').style.display = 'flex';
+                }
+            } catch (error) {
+                alert('加载详情失败: ' + error.message);
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+        
+        function downloadExcel(id) {
+            window.open(`/api/results/${id}/download?format=excel`, '_blank');
+        }
+        
+        function downloadWord(id) {
+            window.open(`/api/results/${id}/download?format=word`, '_blank');
+        }
+        
+        loadResults();
+    </script>
+</body>
+</html>

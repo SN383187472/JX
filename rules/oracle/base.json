@@ -1,0 +1,283 @@
+{
+  "name": "Oracle数据库等保基线检查",
+  "version": "1.0.0",
+  "description": "基于等保2.0要求的Oracle数据库安全基线检查规则",
+  "compliance": ["等保2.0", "GB/T 36960-2018"],
+  "rules": [
+    {
+      "id": "ORACLE-001",
+      "name": "Oracle服务状态检查",
+      "description": "检查Oracle服务是否正常运行",
+      "command": "ps -ef | grep ora_pmon | grep -v grep",
+      "expected": "ora_pmon",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "服务状态",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-002",
+      "name": "Oracle监听状态检查",
+      "description": "检查Oracle监听服务状态",
+      "command": "lsnrctl status 2>/dev/null | grep STATUS || ps -ef | grep tnslsnr | grep -v grep",
+      "expected": "READY",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络配置",
+      "compliance": "等保2.0-安全通信网络"
+    },
+    {
+      "id": "ORACLE-003",
+      "name": "数据文件目录权限检查",
+      "description": "检查Oracle数据文件目录权限",
+      "command": "ls -ld /u01/app/oracle/oradata 2>/dev/null || ls -ld /oracle/oradata 2>/dev/null",
+      "expected": "drwx",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-004",
+      "name": "运行用户检查",
+      "description": "检查Oracle是否使用专用用户运行",
+      "command": "ps -ef | grep ora_pmon | grep -v grep | awk '{print $1}'",
+      "expected": "oracle",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "账户安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-005",
+      "name": "Oracle Home目录权限检查",
+      "description": "检查ORACLE_HOME目录权限",
+      "command": "ls -ld $ORACLE_HOME 2>/dev/null || ls -ld /u01/app/oracle/product/* 2>/dev/null",
+      "expected": "drwx",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-006",
+      "name": "默认账户检查",
+      "description": "检查是否存在默认账户",
+      "sql": "SELECT username, account_status FROM dba_users WHERE username IN ('SCOTT','HR','OE','PM','IX','SH','BI') AND account_status='OPEN';",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "ORACLE-007",
+      "name": "锁定账户检查",
+      "description": "检查锁定账户",
+      "sql": "SELECT username, account_status FROM dba_users WHERE account_status='LOCKED';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户安全",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "ORACLE-008",
+      "name": "过期账户检查",
+      "description": "检查过期账户",
+      "sql": "SELECT username, account_status, expiry_date FROM dba_users WHERE account_status LIKE '%EXPIRED%';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户安全",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "ORACLE-009",
+      "name": "密码复杂度配置检查",
+      "description": "检查是否配置密码复杂度策略",
+      "sql": "SELECT * FROM dba_profiles WHERE profile='DEFAULT' AND resource_type='PASSWORD';",
+      "expected": "PASSWORD",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "ORACLE-010",
+      "name": "密码有效期检查",
+      "description": "检查密码有效期配置",
+      "sql": "SELECT resource_name, limit FROM dba_profiles WHERE profile='DEFAULT' AND resource_name='PASSWORD_LIFE_TIME';",
+      "expected": "PASSWORD_LIFE_TIME",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "ORACLE-011",
+      "name": "密码重用检查",
+      "description": "检查密码重用限制",
+      "sql": "SELECT resource_name, limit FROM dba_profiles WHERE profile='DEFAULT' AND resource_name='PASSWORD_REUSE_MAX';",
+      "expected": "PASSWORD_REUSE_MAX",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "ORACLE-012",
+      "name": "登录失败锁定检查",
+      "description": "检查登录失败锁定配置",
+      "sql": "SELECT resource_name, limit FROM dba_profiles WHERE profile='DEFAULT' AND resource_name='FAILED_LOGIN_ATTEMPTS';",
+      "expected": "FAILED_LOGIN_ATTEMPTS",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "ORACLE-013",
+      "name": "审计开关检查",
+      "description": "检查是否开启审计功能",
+      "sql": "SHOW PARAMETER audit_trail;",
+      "expected": "audit_trail",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "安全审计",
+      "compliance": "等保2.0-安全审计"
+    },
+    {
+      "id": "ORACLE-014",
+      "name": "DBA权限用户检查",
+      "description": "检查具有DBA权限的用户",
+      "sql": "SELECT grantee FROM dba_role_privs WHERE granted_role='DBA';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "访问控制",
+      "compliance": "等保2.0-访问控制"
+    },
+    {
+      "id": "ORACLE-015",
+      "name": "PUBLIC权限检查",
+      "description": "检查PUBLIC角色的危险权限",
+      "sql": "SELECT count(*) FROM dba_tab_privs WHERE grantee='PUBLIC' AND privilege IN ('EXECUTE','SELECT','UPDATE','DELETE');",
+      "expected": "0",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "等保2.0-访问控制"
+    },
+    {
+      "id": "ORACLE-016",
+      "name": "最大会话数检查",
+      "description": "检查最大会话数配置",
+      "sql": "SHOW PARAMETER sessions;",
+      "expected": "sessions",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资源控制",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-017",
+      "name": "最大进程数检查",
+      "description": "检查最大进程数配置",
+      "sql": "SHOW PARAMETER processes;",
+      "expected": "processes",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资源控制",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-018",
+      "name": "归档模式检查",
+      "description": "检查是否启用归档模式",
+      "sql": "SELECT log_mode FROM v$database;",
+      "expected": "ARCHIVELOG",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "备份恢复",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-019",
+      "name": "闪回区配置检查",
+      "description": "检查闪回区配置",
+      "sql": "SHOW PARAMETER db_recovery_file_dest;",
+      "expected": "db_recovery_file_dest",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "备份恢复",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-020",
+      "name": "控制文件多路复用检查",
+      "description": "检查控制文件是否多路复用",
+      "sql": "SELECT count(*) FROM v$controlfile;",
+      "expected": "3",
+      "check_type": "equals",
+      "severity": "medium",
+      "category": "数据安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-021",
+      "name": "日志文件多路复用检查",
+      "description": "检查日志文件是否多路复用",
+      "sql": "SELECT group#, count(*) FROM v$logfile GROUP BY group#;",
+      "expected": "group#",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "数据安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-022",
+      "name": "监听密码检查",
+      "description": "检查是否配置监听密码",
+      "command": "cat $ORACLE_HOME/network/admin/listener.ora 2>/dev/null | grep -i password || echo 'not configured'",
+      "expected": "PASSWORDS_",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "网络安全",
+      "compliance": "等保2.0-安全通信网络"
+    },
+    {
+      "id": "ORACLE-023",
+      "name": "监听日志检查",
+      "description": "检查监听日志配置",
+      "command": "ls -la $ORACLE_HOME/network/log/*.log 2>/dev/null || ls -la /u01/app/oracle/diag/tnslsnr/*/listener/trace/*.log 2>/dev/null || echo 'not found'",
+      "expected": ".log",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "等保2.0-安全审计"
+    },
+    {
+      "id": "ORACLE-024",
+      "name": "备份检查",
+      "description": "检查是否存在备份",
+      "command": "ls -la /backup/oracle* 2>/dev/null || ls -la /u01/backup/*oracle* 2>/dev/null || echo 'not found'",
+      "expected": "backup",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "备份恢复",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "ORACLE-025",
+      "name": "RMAN备份检查",
+      "description": "检查RMAN备份配置",
+      "sql": "SELECT * FROM v$rman_status WHERE start_time > SYSDATE-7;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "备份恢复",
+      "compliance": "等保2.0-安全计算环境"
+    }
+  ]
+}

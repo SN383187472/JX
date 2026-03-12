@@ -1,0 +1,283 @@
+{
+  "name": "MySQL数据库等保基线检查",
+  "version": "1.0.0",
+  "description": "基于等保2.0要求的MySQL数据库安全基线检查规则",
+  "compliance": ["等保2.0", "GB/T 36960-2018"],
+  "rules": [
+    {
+      "id": "MYSQL-001",
+      "name": "MySQL服务状态检查",
+      "description": "检查MySQL服务是否正常运行",
+      "command": "systemctl is-active mysqld 2>/dev/null || systemctl is-active mysql 2>/dev/null || ps -ef | grep mysqld | grep -v grep",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "服务状态",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-002",
+      "name": "MySQL端口监听检查",
+      "description": "检查MySQL端口是否正常监听",
+      "command": "netstat -tuln | grep 3306",
+      "expected": "3306",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络配置",
+      "compliance": "等保2.0-安全通信网络"
+    },
+    {
+      "id": "MYSQL-003",
+      "name": "数据目录权限检查",
+      "description": "检查MySQL数据目录权限",
+      "command": "ls -ld /var/lib/mysql 2>/dev/null || ls -ld /data/mysql 2>/dev/null",
+      "expected": "drwx",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-004",
+      "name": "运行用户检查",
+      "description": "检查MySQL是否使用专用用户运行",
+      "command": "ps -ef | grep mysqld | grep -v grep | awk '{print $1}'",
+      "expected": "mysql",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "账户安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-005",
+      "name": "配置文件权限检查",
+      "description": "检查my.cnf配置文件权限",
+      "command": "stat -c '%a' /etc/my.cnf 2>/dev/null || stat -c '%a' /etc/mysql/my.cnf 2>/dev/null",
+      "expected": "644",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-006",
+      "name": "空密码账户检查",
+      "description": "检查是否存在空密码账户",
+      "sql": "SELECT user,host FROM mysql.user WHERE authentication_string='' OR password IS NULL;",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "MYSQL-007",
+      "name": "匿名用户检查",
+      "description": "检查是否存在匿名用户",
+      "sql": "SELECT user,host FROM mysql.user WHERE user='';",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "等保2.0-访问控制"
+    },
+    {
+      "id": "MYSQL-008",
+      "name": "root远程登录检查",
+      "description": "检查root用户是否允许远程登录",
+      "sql": "SELECT user,host FROM mysql.user WHERE user='root' AND host NOT IN ('localhost', '127.0.0.1');",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "等保2.0-访问控制"
+    },
+    {
+      "id": "MYSQL-009",
+      "name": "密码复杂度策略检查",
+      "description": "检查是否启用密码复杂度插件",
+      "sql": "SHOW VARIABLES LIKE 'validate_password%';",
+      "expected": "validate_password",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "MYSQL-010",
+      "name": "密码有效期检查",
+      "description": "检查是否配置密码有效期",
+      "sql": "SHOW VARIABLES LIKE 'default_password_lifetime';",
+      "expected": "default_password_lifetime",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-身份鉴别"
+    },
+    {
+      "id": "MYSQL-011",
+      "name": "审计日志开关检查",
+      "description": "检查是否开启通用查询日志",
+      "sql": "SHOW VARIABLES LIKE 'general_log';",
+      "expected": "general_log",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "安全审计",
+      "compliance": "等保2.0-安全审计"
+    },
+    {
+      "id": "MYSQL-012",
+      "name": "慢查询日志检查",
+      "description": "检查是否开启慢查询日志",
+      "sql": "SHOW VARIABLES LIKE 'slow_query_log';",
+      "expected": "slow_query_log",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "等保2.0-安全审计"
+    },
+    {
+      "id": "MYSQL-013",
+      "name": "错误日志检查",
+      "description": "检查是否配置错误日志",
+      "sql": "SHOW VARIABLES LIKE 'log_error';",
+      "expected": "log_error",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "等保2.0-安全审计"
+    },
+    {
+      "id": "MYSQL-014",
+      "name": "二进制日志检查",
+      "description": "检查是否开启二进制日志",
+      "sql": "SHOW VARIABLES LIKE 'log_bin';",
+      "expected": "ON",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "备份恢复",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-015",
+      "name": "SSL连接检查",
+      "description": "检查是否启用SSL加密连接",
+      "sql": "SHOW VARIABLES LIKE 'have_ssl';",
+      "expected": "YES",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "通信安全",
+      "compliance": "等保2.0-安全通信网络"
+    },
+    {
+      "id": "MYSQL-016",
+      "name": "绑定地址检查",
+      "description": "检查是否限制绑定地址",
+      "sql": "SHOW VARIABLES LIKE 'bind_address';",
+      "expected": "bind_address",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络安全",
+      "compliance": "等保2.0-安全区域边界"
+    },
+    {
+      "id": "MYSQL-017",
+      "name": "最大连接数检查",
+      "description": "检查最大连接数配置",
+      "sql": "SHOW VARIABLES LIKE 'max_connections';",
+      "expected": "max_connections",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资源控制",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-018",
+      "name": "连接超时检查",
+      "description": "检查连接超时配置",
+      "sql": "SHOW VARIABLES LIKE 'wait_timeout';",
+      "expected": "wait_timeout",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资源控制",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-019",
+      "name": "最大错误次数检查",
+      "description": "检查最大连接错误次数配置",
+      "sql": "SHOW VARIABLES LIKE 'max_connect_errors';",
+      "expected": "max_connect_errors",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "访问控制",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-020",
+      "name": "管理员权限账户检查",
+      "description": "检查具有管理员权限的账户",
+      "sql": "SELECT user,host FROM mysql.user WHERE Super_priv='Y';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "访问控制",
+      "compliance": "等保2.0-访问控制"
+    },
+    {
+      "id": "MYSQL-021",
+      "name": "本地文件访问检查",
+      "description": "检查是否限制LOAD DATA LOCAL",
+      "sql": "SHOW VARIABLES LIKE 'local_infile';",
+      "expected": "OFF",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "数据安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-022",
+      "name": "skip-grant-tables检查",
+      "description": "检查是否禁用skip-grant-tables",
+      "command": "grep 'skip-grant-tables' /etc/my.cnf 2>/dev/null || echo 'not found'",
+      "expected": "not found",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "等保2.0-访问控制"
+    },
+    {
+      "id": "MYSQL-023",
+      "name": "符号链接检查",
+      "description": "检查是否禁用符号链接",
+      "sql": "SHOW VARIABLES LIKE 'symbolic_links';",
+      "expected": "OFF",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "数据安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "MYSQL-024",
+      "name": "日志文件权限检查",
+      "description": "检查日志文件权限",
+      "command": "ls -la /var/log/mysql/ 2>/dev/null || ls -la /var/lib/mysql/*.err 2>/dev/null || echo 'not found'",
+      "expected": ".log",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全审计"
+    },
+    {
+      "id": "MYSQL-025",
+      "name": "备份检查",
+      "description": "检查是否存在备份",
+      "command": "ls -la /backup/mysql* 2>/dev/null || ls -la /data/backup/*mysql* 2>/dev/null || echo 'not found'",
+      "expected": "backup",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "备份恢复",
+      "compliance": "等保2.0-安全计算环境"
+    }
+  ]
+}

@@ -1,0 +1,228 @@
+{
+    "name": "Nginx 通用安全基线",
+    "version": "1.0.0",
+    "description": "Nginx 通用安全配置检查规则",
+    "compliance": ["等保2.0", "CIS Nginx Benchmark"],
+    "rules": [
+        {
+            "id": "NGINX-BASE-001",
+            "name": "隐藏版本信息",
+            "description": "检查是否隐藏Nginx版本号",
+            "command": "grep -E 'server_tokens' /etc/nginx/nginx.conf /etc/nginx/conf.d/*.conf 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "server_tokens off",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "remediation": "在配置文件中添加: server_tokens off;"
+        },
+        {
+            "id": "NGINX-BASE-002",
+            "name": "运行用户检查",
+            "description": "检查Nginx运行用户",
+            "command": "grep -E '^user' /etc/nginx/nginx.conf 2>/dev/null | head -1",
+            "expected": "nginx",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "账户安全",
+            "remediation": "配置 user nginx; 或 user www-data;"
+        },
+        {
+            "id": "NGINX-BASE-003",
+            "name": "Worker进程数",
+            "description": "检查worker进程数配置",
+            "command": "grep -E '^worker_processes' /etc/nginx/nginx.conf 2>/dev/null",
+            "expected": "worker_processes",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "性能配置",
+            "remediation": "配置 worker_processes auto;"
+        },
+        {
+            "id": "NGINX-BASE-004",
+            "name": "Worker连接数",
+            "description": "检查worker连接数配置",
+            "command": "grep -E 'worker_connections' /etc/nginx/nginx.conf 2>/dev/null | grep -v '#'",
+            "expected": "worker_connections",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "性能配置",
+            "remediation": "在events块中配置 worker_connections"
+        },
+        {
+            "id": "NGINX-BASE-005",
+            "name": "访问日志配置",
+            "description": "检查是否配置访问日志",
+            "command": "grep -rE 'access_log' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "access_log",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "日志审计",
+            "remediation": "配置 access_log /var/log/nginx/access.log;"
+        },
+        {
+            "id": "NGINX-BASE-006",
+            "name": "错误日志配置",
+            "description": "检查是否配置错误日志",
+            "command": "grep -rE 'error_log' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "error_log",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "日志审计",
+            "remediation": "配置 error_log /var/log/nginx/error.log warn;"
+        },
+        {
+            "id": "NGINX-BASE-007",
+            "name": "PID文件配置",
+            "description": "检查PID文件路径配置",
+            "command": "grep -E 'pid' /etc/nginx/nginx.conf 2>/dev/null | grep -v '#'",
+            "expected": "pid",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "配置安全",
+            "remediation": "配置 pid /run/nginx.pid;"
+        },
+        {
+            "id": "NGINX-BASE-008",
+            "name": "客户端请求体大小限制",
+            "description": "检查客户端请求体大小限制",
+            "command": "grep -rE 'client_max_body_size' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "client_max_body_size",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源限制",
+            "remediation": "配置 client_max_body_size 10m;"
+        },
+        {
+            "id": "NGINX-BASE-009",
+            "name": "客户端请求体缓冲区",
+            "description": "检查客户端请求体缓冲区大小",
+            "command": "grep -rE 'client_body_buffer_size' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "client_body_buffer_size",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "配置 client_body_buffer_size 128k;"
+        },
+        {
+            "id": "NGINX-BASE-010",
+            "name": "请求头缓冲区",
+            "description": "检查请求头缓冲区大小",
+            "command": "grep -rE 'client_header_buffer_size' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "client_header_buffer_size",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "配置 client_header_buffer_size 1k;"
+        },
+        {
+            "id": "NGINX-BASE-011",
+            "name": "保持连接超时",
+            "description": "检查keepalive超时设置",
+            "command": "grep -rE 'keepalive_timeout' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "keepalive_timeout",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "配置 keepalive_timeout 65;"
+        },
+        {
+            "id": "NGINX-BASE-012",
+            "name": "配置文件权限",
+            "description": "检查Nginx配置文件权限",
+            "command": "stat -c '%a' /etc/nginx/nginx.conf 2>/dev/null",
+            "expected": "640",
+            "check_type": "in",
+            "severity": "medium",
+            "category": "文件权限",
+            "remediation": "chmod 640 /etc/nginx/nginx.conf"
+        },
+        {
+            "id": "NGINX-BASE-013",
+            "name": "X-Frame-Options头",
+            "description": "检查是否配置X-Frame-Options响应头",
+            "command": "grep -rE 'X-Frame-Options' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "X-Frame-Options",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "remediation": "添加 add_header X-Frame-Options \"SAMEORIGIN\";"
+        },
+        {
+            "id": "NGINX-BASE-014",
+            "name": "X-Content-Type-Options头",
+            "description": "检查是否配置X-Content-Type-Options响应头",
+            "command": "grep -rE 'X-Content-Type-Options' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "X-Content-Type-Options",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "remediation": "添加 add_header X-Content-Type-Options \"nosniff\";"
+        },
+        {
+            "id": "NGINX-BASE-015",
+            "name": "X-XSS-Protection头",
+            "description": "检查是否配置X-XSS-Protection响应头",
+            "command": "grep -rE 'X-XSS-Protection' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "X-XSS-Protection",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "remediation": "添加 add_header X-XSS-Protection \"1; mode=block\";"
+        },
+        {
+            "id": "NGINX-BASE-016",
+            "name": "禁止自动索引",
+            "description": "检查是否禁用目录自动索引",
+            "command": "grep -rE 'autoindex on' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "medium",
+            "category": "目录安全",
+            "remediation": "禁用 autoindex on; 或使用 autoindex off;"
+        },
+        {
+            "id": "NGINX-BASE-017",
+            "name": "隐藏Nginx响应头",
+            "description": "检查是否移除不必要的响应头",
+            "command": "grep -rE 'proxy_hide_header|fastcgi_hide_header' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "hide_header",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "信息泄露",
+            "remediation": "使用 proxy_hide_header 隐藏后端响应头"
+        },
+        {
+            "id": "NGINX-BASE-018",
+            "name": "限制HTTP方法",
+            "description": "检查是否限制危险HTTP方法",
+            "command": "grep -rE 'limit_except|allow_method' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "limit_except",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "HTTP方法",
+            "remediation": "使用 limit_except 限制HTTP方法"
+        },
+        {
+            "id": "NGINX-BASE-019",
+            "name": "缓冲区溢出防护",
+            "description": "检查缓冲区大小配置",
+            "command": "grep -rE 'large_client_header_buffers' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "large_client_header_buffers",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源限制",
+            "remediation": "配置 large_client_header_buffers 4 8k;"
+        },
+        {
+            "id": "NGINX-BASE-020",
+            "name": "SSL配置检查",
+            "description": "检查SSL相关配置",
+            "command": "grep -rE 'ssl_protocols|ssl_ciphers' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "ssl_protocols",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "remediation": "配置安全的SSL协议和加密套件"
+        }
+    ]
+}

@@ -1,0 +1,283 @@
+{
+    "name": "Tomcat GJB 5621A 合规基线",
+    "version": "1.0.0",
+    "description": "Tomcat GJB 5621A 军用软件安全要求检查规则",
+    "compliance": ["GJB 5621A"],
+    "rules": [
+        {
+            "id": "TOMCAT-GJB-001",
+            "name": "身份鉴别要求",
+            "description": "GJB 5621A-4.3.1 应配置身份鉴别机制",
+            "command": "grep -r '<user' $TOMCAT_HOME/conf/tomcat-users.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "<user",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.1"
+        },
+        {
+            "id": "TOMCAT-GJB-002",
+            "name": "密码复杂度要求",
+            "description": "GJB 5621A-4.3.2 密码应满足复杂度要求",
+            "command": "grep -oP 'password=\"[^\"]+\"' $TOMCAT_HOME/conf/tomcat-users.xml 2>/dev/null | sed 's/password=\"//g' | sed 's/\"//g' | awk '{if(length($0)>=8) print \"PASS\"; else print \"FAIL\"}'",
+            "expected": "PASS",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.2"
+        },
+        {
+            "id": "TOMCAT-GJB-003",
+            "name": "管理员角色限制",
+            "description": "GJB 5621A-4.4.1 应限制管理员权限",
+            "command": "grep -E 'roles=\"[^\"]*manager-gui|roles=\"[^\"]*admin-gui' $TOMCAT_HOME/conf/tomcat-users.xml 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "manager-gui",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.1"
+        },
+        {
+            "id": "TOMCAT-GJB-004",
+            "name": "禁用默认用户",
+            "description": "GJB 5621A-4.4.2 应删除或禁用默认账户",
+            "command": "grep -E 'username=\"tomcat\"|username=\"admin\"|username=\"both\"' $TOMCAT_HOME/conf/tomcat-users.xml 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "NOT_FOUND",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "账户安全",
+            "gjb_ref": "GJB 5621A-4.4.2"
+        },
+        {
+            "id": "TOMCAT-GJB-005",
+            "name": "关闭管理应用",
+            "description": "GJB 5621A-4.4.3 不使用的管理应用应删除",
+            "command": "ls $TOMCAT_HOME/webapps/ 2>/dev/null | grep -E 'manager|host-manager|docs|examples'",
+            "expected": "",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.3"
+        },
+        {
+            "id": "TOMCAT-GJB-006",
+            "name": "关闭AJP端口",
+            "description": "GJB 5621A-4.4.4 不使用AJP应禁用",
+            "command": "grep -E '<Connector.*port.*8009' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "NOT_FOUND",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "网络访问",
+            "gjb_ref": "GJB 5621A-4.4.4"
+        },
+        {
+            "id": "TOMCAT-GJB-007",
+            "name": "配置文件权限",
+            "description": "GJB 5621A-4.2.1 配置文件应设置严格权限",
+            "command": "stat -c '%a' $TOMCAT_HOME/conf/tomcat-users.xml 2>/dev/null || stat -f '%Lp' $TOMCAT_HOME/conf/tomcat-users.xml 2>/dev/null",
+            "expected": "600",
+            "check_type": "in",
+            "severity": "high",
+            "category": "文件权限",
+            "gjb_ref": "GJB 5621A-4.2.1"
+        },
+        {
+            "id": "TOMCAT-GJB-008",
+            "name": "运行用户要求",
+            "description": "GJB 5621A-4.2.2 应以非root用户运行",
+            "command": "ps -ef | grep tomcat | grep -v grep | awk '{print $1}' | head -1",
+            "expected": "root",
+            "check_type": "not_equals",
+            "severity": "high",
+            "category": "账户安全",
+            "gjb_ref": "GJB 5621A-4.2.2"
+        },
+        {
+            "id": "TOMCAT-GJB-009",
+            "name": "错误页面重定向",
+            "description": "GJB 5621A-4.5.1 应配置自定义错误页面",
+            "command": "grep -E '<error-page>' $TOMCAT_HOME/conf/web.xml 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "<error-page>",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息安全",
+            "gjb_ref": "GJB 5621A-4.5.1"
+        },
+        {
+            "id": "TOMCAT-GJB-010",
+            "name": "禁用目录列表",
+            "description": "GJB 5621A-4.5.2 应禁用目录列表",
+            "command": "grep -E 'listings' $TOMCAT_HOME/conf/web.xml 2>/dev/null | grep -v '<!--' | grep 'false' || echo 'NOT_FOUND'",
+            "expected": "false",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "信息安全",
+            "gjb_ref": "GJB 5621A-4.5.2"
+        },
+        {
+            "id": "TOMCAT-GJB-011",
+            "name": "隐藏版本信息",
+            "description": "GJB 5621A-4.5.3 应隐藏服务器版本信息",
+            "command": "grep -E 'server' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' | grep 'server=\"\"' || echo 'NOT_FOUND'",
+            "expected": "server=\"\"",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息安全",
+            "gjb_ref": "GJB 5621A-4.5.3"
+        },
+        {
+            "id": "TOMCAT-GJB-012",
+            "name": "访问日志配置",
+            "description": "GJB 5621A-5.4.1 应配置访问日志",
+            "command": "grep -E 'AccessLogValve' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "AccessLogValve",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.1"
+        },
+        {
+            "id": "TOMCAT-GJB-013",
+            "name": "日志格式配置",
+            "description": "GJB 5621A-5.4.2 日志应包含必要信息",
+            "command": "grep -E 'pattern=' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "pattern=",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.2"
+        },
+        {
+            "id": "TOMCAT-GJB-014",
+            "name": "连接超时配置",
+            "description": "GJB 5621A-5.5.1 应配置连接超时",
+            "command": "grep -E 'connectionTimeout' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' | head -1",
+            "expected": "connectionTimeout",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.1"
+        },
+        {
+            "id": "TOMCAT-GJB-015",
+            "name": "最大连接数限制",
+            "description": "GJB 5621A-5.5.2 应配置最大连接数",
+            "command": "grep -E 'maxConnections|maxThreads' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "max",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.2"
+        },
+        {
+            "id": "TOMCAT-GJB-016",
+            "name": "SSL/TLS配置",
+            "description": "GJB 5621A-5.3.1 应配置HTTPS加密",
+            "command": "grep -E 'SSLEnabled.*true|scheme.*https' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "SSL",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.1"
+        },
+        {
+            "id": "TOMCAT-GJB-017",
+            "name": "TLS协议版本",
+            "description": "GJB 5621A-5.3.2 应使用安全TLS版本",
+            "command": "grep -E 'sslProtocol|sslEnabledProtocols' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "TLS",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.2"
+        },
+        {
+            "id": "TOMCAT-GJB-018",
+            "name": "禁用弱密码套件",
+            "description": "GJB 5621A-5.3.3 应禁用弱密码套件",
+            "command": "grep -E 'ciphers' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "ciphers",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.3"
+        },
+        {
+            "id": "TOMCAT-GJB-019",
+            "name": "非默认端口",
+            "description": "GJB 5621A-4.4.5 应使用非默认端口",
+            "command": "grep -E '<Connector.*port=\"8080\"|<Connector.*port=\"8443\"' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "NOT_FOUND",
+            "check_type": "equals",
+            "severity": "medium",
+            "category": "网络访问",
+            "gjb_ref": "GJB 5621A-4.4.5"
+        },
+        {
+            "id": "TOMCAT-GJB-020",
+            "name": "绑定地址限制",
+            "description": "GJB 5621A-4.4.6 应限制绑定地址",
+            "command": "grep -E 'address=' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "address=",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "网络访问",
+            "gjb_ref": "GJB 5621A-4.4.6"
+        },
+        {
+            "id": "TOMCAT-GJB-021",
+            "name": "Session超时配置",
+            "description": "GJB 5621A-5.5.3 应配置Session超时",
+            "command": "grep -E 'session-timeout' $TOMCAT_HOME/conf/web.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "session-timeout",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "会话安全",
+            "gjb_ref": "GJB 5621A-5.5.3"
+        },
+        {
+            "id": "TOMCAT-GJB-022",
+            "name": "禁用WAR自动部署",
+            "description": "GJB 5621A-4.5.4 应禁用自动部署",
+            "command": "grep -E 'autoDeploy.*true|deployOnStartup.*true' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "NOT_FOUND",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "应用安全",
+            "gjb_ref": "GJB 5621A-4.5.4"
+        },
+        {
+            "id": "TOMCAT-GJB-023",
+            "name": "Cookie安全配置",
+            "description": "GJB 5621A-5.3.4 Cookie应设置安全属性",
+            "command": "grep -E 'useHttpOnly|secure' $TOMCAT_HOME/conf/context.xml $TOMCAT_HOME/conf/web.xml 2>/dev/null | grep -v '<!--' || echo 'NOT_FOUND'",
+            "expected": "HttpOnly",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "会话安全",
+            "gjb_ref": "GJB 5621A-5.3.4"
+        },
+        {
+            "id": "TOMCAT-GJB-024",
+            "name": "JVM内存限制",
+            "description": "GJB 5621A-5.5.4 应配置JVM内存限制",
+            "command": "ps -ef | grep tomcat | grep -v grep | grep -oE 'Xmx[0-9]+[mMgG]' || echo 'NOT_FOUND'",
+            "expected": "Xmx",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.4"
+        },
+        {
+            "id": "TOMCAT-GJB-025",
+            "name": "安全补丁版本",
+            "description": "GJB 5621A-4.6.1 应使用最新安全版本",
+            "command": "$TOMCAT_HOME/bin/version.sh 2>/dev/null | grep 'Server number' || echo 'NOT_FOUND'",
+            "expected": "Server number:",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "补丁管理",
+            "gjb_ref": "GJB 5621A-4.6.1"
+        }
+    ]
+}

@@ -1,0 +1,128 @@
+{
+  "name": "Windows 7 安全基线",
+  "version": "1.0.0",
+  "description": "Windows 7操作系统安全基线检查",
+  "compliance": ["等保2.0", "CIS"],
+  "rules": [
+    {
+      "id": "WIN7-001",
+      "name": "密码复杂度策略",
+      "description": "检查密码复杂度要求",
+      "command": "net accounts",
+      "expected": "密码最短长度",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WIN7-002",
+      "name": "密码最长有效期",
+      "description": "检查密码最长使用期限",
+      "command": "net accounts | findstr '密码最长使用期限'",
+      "expected": "90",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WIN7-003",
+      "name": "账户锁定策略",
+      "description": "检查账户锁定阈值",
+      "command": "net accounts | findstr '锁定阈值'",
+      "expected": "5",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WIN7-004",
+      "name": "来宾账户状态",
+      "description": "检查来宾账户是否禁用",
+      "command": "net user guest | findstr '帐户启用'",
+      "expected": "帐户启用                 否",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WIN7-005",
+      "name": "Windows防火墙状态",
+      "description": "检查Windows防火墙是否启用",
+      "command": "netsh advfirewall show allprofiles state",
+      "expected": "ON",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络安全"
+    },
+    {
+      "id": "WIN7-006",
+      "name": "自动更新状态",
+      "description": "检查Windows自动更新是否启用",
+      "command": "sc query wuauserv | findstr 'RUNNING'",
+      "expected": "RUNNING",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "补丁管理"
+    },
+    {
+      "id": "WIN7-007",
+      "name": "远程桌面设置",
+      "description": "检查远程桌面是否禁用",
+      "command": "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server' /v fDenyTSConnections",
+      "expected": "0x1",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "远程访问"
+    },
+    {
+      "id": "WIN7-008",
+      "name": "UAC设置",
+      "description": "检查UAC是否启用",
+      "command": "reg query 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' /v EnableLUA",
+      "expected": "0x1",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "权限控制"
+    },
+    {
+      "id": "WIN7-009",
+      "name": "屏幕保护密码",
+      "description": "检查屏幕保护是否要求密码",
+      "command": "reg query 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' /v ScreenSaverIsSecure 2>nul || echo '未配置'",
+      "expected": "0x1",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "终端安全"
+    },
+    {
+      "id": "WIN7-010",
+      "name": "杀毒软件状态",
+      "description": "检查杀毒软件是否安装",
+      "command": "wmic /namespace:\\\\root\\securitycenter2 path AntiVirusProduct get displayName 2>nul || echo '需检查'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "防病毒"
+    },
+    {
+      "id": "WIN7-011",
+      "name": "默认共享检查",
+      "description": "检查默认管理共享",
+      "command": "net share | findstr '$'",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "medium",
+      "category": "文件安全"
+    },
+    {
+      "id": "WIN7-012",
+      "name": "不必要服务-Telnet",
+      "description": "检查Telnet服务",
+      "command": "sc query tlntsvr 2>nul | findstr 'RUNNING' || echo '未运行'",
+      "expected": "未运行",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "服务安全"
+    }
+  ]
+}

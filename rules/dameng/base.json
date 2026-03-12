@@ -1,0 +1,118 @@
+{
+  "name": "达梦数据库等保基线检查",
+  "version": "1.0.0",
+  "description": "基于等保2.0要求的达梦数据库安全基线检查规则",
+  "compliance": ["等保2.0", "关保"],
+  "rules": [
+    {
+      "id": "DM-001",
+      "name": "检查达梦服务状态",
+      "description": "检查达梦数据库服务是否正常运行",
+      "command": "ps -ef | grep dmserver | grep -v grep",
+      "expected": "dmserver",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "服务状态",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "DM-002",
+      "name": "检查达梦端口监听",
+      "description": "检查达梦数据库端口是否正常监听",
+      "command": "netstat -tuln | grep 5236",
+      "expected": "5236",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络配置",
+      "compliance": "等保2.0-安全通信网络"
+    },
+    {
+      "id": "DM-003",
+      "name": "检查数据文件权限",
+      "description": "检查达梦数据文件目录权限",
+      "command": "ls -ld /dm8/data 2>/dev/null || ls -ld /opt/dmdbms/data 2>/dev/null",
+      "expected": "drwx",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "DM-004",
+      "name": "检查达梦安装目录权限",
+      "description": "检查达梦安装目录权限是否合理",
+      "command": "ls -ld /dm8 2>/dev/null || ls -ld /opt/dmdbms 2>/dev/null",
+      "expected": "drwx",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "文件安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "DM-005",
+      "name": "检查运行用户",
+      "description": "检查达梦是否使用专用用户运行",
+      "command": "ps -ef | grep dmserver | awk '{print $1}' | head -1",
+      "expected": "dmdba",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "账户安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "DM-006",
+      "name": "检查日志文件配置",
+      "description": "检查达梦日志文件是否存在",
+      "command": "ls -l /dm8/log/*.log 2>/dev/null || ls -l /opt/dmdbms/log/*.log 2>/dev/null",
+      "expected": ".log",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "审计日志",
+      "compliance": "等保2.0-安全计算环境-安全审计"
+    },
+    {
+      "id": "DM-007",
+      "name": "检查备份目录",
+      "description": "检查是否存在备份目录",
+      "command": "ls -ld /dm8/bak 2>/dev/null || ls -ld /opt/dmdbms/bak 2>/dev/null || echo 'not found'",
+      "expected": "bak",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "备份恢复",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "DM-008",
+      "name": "检查dm.ini配置文件权限",
+      "description": "检查dm.ini配置文件权限",
+      "command": "stat -c '%a' /dm8/data/*/dm.ini 2>/dev/null || stat -c '%a' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "600",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "配置安全",
+      "compliance": "等保2.0-安全计算环境"
+    },
+    {
+      "id": "DM-009",
+      "name": "检查是否限制IP访问",
+      "description": "检查dm.ini中是否配置IP访问限制",
+      "command": "grep 'ENABLE_ENCRYPT' /dm8/data/*/dm.ini 2>/dev/null || echo 'not configured'",
+      "expected": "1",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "访问控制",
+      "compliance": "等保2.0-安全区域边界"
+    },
+    {
+      "id": "DM-010",
+      "name": "检查最大连接数配置",
+      "description": "检查数据库最大连接数配置",
+      "command": "grep 'MAX_SESSIONS' /dm8/data/*/dm.ini 2>/dev/null || echo 'not configured'",
+      "expected": "MAX_SESSIONS",
+      "check_type": "contains",
+      "severity": "low",
+      "category": "配置安全",
+      "compliance": "等保2.0-安全计算环境"
+    }
+  ]
+}

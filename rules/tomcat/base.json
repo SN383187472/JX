@@ -1,0 +1,228 @@
+{
+    "name": "Tomcat 通用安全基线",
+    "version": "1.0.0",
+    "description": "Apache Tomcat 通用安全配置检查规则",
+    "compliance": ["等保2.0", "CIS Tomcat Benchmark"],
+    "rules": [
+        {
+            "id": "TOMCAT-BASE-001",
+            "name": "隐藏版本信息",
+            "description": "检查是否隐藏Tomcat版本信息",
+            "command": "grep -r 'server' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#' | head -5",
+            "expected": "server=\"Apache\"",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "remediation": "在Connector中添加 server=\"Apache\" 属性"
+        },
+        {
+            "id": "TOMCAT-BASE-002",
+            "name": "关闭管理应用",
+            "description": "检查是否删除默认管理应用",
+            "command": "ls -la /opt/tomcat*/webapps/ /usr/local/tomcat*/webapps/ /var/lib/tomcat*/webapps/ 2>/dev/null | grep -E 'manager|host-manager|ROOT|examples|docs' || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "应用安全",
+            "remediation": "删除manager、host-manager、examples等默认应用"
+        },
+        {
+            "id": "TOMCAT-BASE-003",
+            "name": "运行用户检查",
+            "description": "检查Tomcat运行用户",
+            "command": "ps -ef | grep tomcat | grep -v root | grep -v grep | awk '{print $1}' | head -1",
+            "expected": "tomcat",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "账户安全",
+            "remediation": "以tomcat用户运行Tomcat服务"
+        },
+        {
+            "id": "TOMCAT-BASE-004",
+            "name": "关闭端口配置",
+            "description": "检查shutdown端口配置",
+            "command": "grep -E 'Server.*port' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#'",
+            "expected": "port=\"-1\"",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "网络配置",
+            "remediation": "设置 shutdown port=\"-1\" 禁用shutdown端口"
+        },
+        {
+            "id": "TOMCAT-BASE-005",
+            "name": "shutdown字符串修改",
+            "description": "检查shutdown字符串是否修改",
+            "command": "grep -E 'shutdown=' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#'",
+            "expected": "shutdown=\"",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "配置安全",
+            "remediation": "修改shutdown字符串为复杂值"
+        },
+        {
+            "id": "TOMCAT-BASE-006",
+            "name": "配置文件权限",
+            "description": "检查配置文件权限",
+            "command": "find /opt/tomcat*/conf /usr/local/tomcat*/conf /etc/tomcat* -name 'server.xml' -exec stat -c '%a %n' {} \\; 2>/dev/null",
+            "expected": "600",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "文件权限",
+            "remediation": "chmod 600 server.xml tomcat-users.xml"
+        },
+        {
+            "id": "TOMCAT-BASE-007",
+            "name": "用户配置文件权限",
+            "description": "检查tomcat-users.xml权限",
+            "command": "find /opt/tomcat*/conf /usr/local/tomcat*/conf /etc/tomcat* -name 'tomcat-users.xml' -exec stat -c '%a %n' {} \\; 2>/dev/null",
+            "expected": "600",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "文件权限",
+            "remediation": "chmod 600 tomcat-users.xml"
+        },
+        {
+            "id": "TOMCAT-BASE-008",
+            "name": "禁用目录列表",
+            "description": "检查是否禁用目录列表",
+            "command": "grep -rE 'listings' /opt/tomcat*/conf/ /usr/local/tomcat*/conf/ /etc/tomcat*/ 2>/dev/null | grep -v '#' || echo 'OK'",
+            "expected": "listings=\"false\"",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "目录安全",
+            "remediation": "在web.xml中设置 listings=false"
+        },
+        {
+            "id": "TOMCAT-BASE-009",
+            "name": "连接超时配置",
+            "description": "检查连接超时设置",
+            "command": "grep -E 'connectionTimeout' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#' | head -5",
+            "expected": "connectionTimeout",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "配置合理的connectionTimeout"
+        },
+        {
+            "id": "TOMCAT-BASE-010",
+            "name": "最大线程数配置",
+            "description": "检查最大线程数设置",
+            "command": "grep -E 'maxThreads' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#' | head -5",
+            "expected": "maxThreads",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源限制",
+            "remediation": "配置合理的maxThreads"
+        },
+        {
+            "id": "TOMCAT-BASE-011",
+            "name": "访问日志配置",
+            "description": "检查是否配置访问日志",
+            "command": "grep -E 'AccessLogValve' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#'",
+            "expected": "AccessLogValve",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "日志审计",
+            "remediation": "配置AccessLogValve记录访问日志"
+        },
+        {
+            "id": "TOMCAT-BASE-012",
+            "name": "错误页面配置",
+            "description": "检查是否配置自定义错误页面",
+            "command": "grep -rE 'error-page' /opt/tomcat*/conf/ /usr/local/tomcat*/conf/ /etc/tomcat*/ 2>/dev/null | grep -v '#' | head -10",
+            "expected": "error-page",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "remediation": "配置自定义错误页面"
+        },
+        {
+            "id": "TOMCAT-BASE-013",
+            "name": "会话超时配置",
+            "description": "检查会话超时设置",
+            "command": "grep -rE 'session-timeout' /opt/tomcat*/conf/ /usr/local/tomcat*/conf/ /etc/tomcat*/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "session-timeout",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "会话安全",
+            "remediation": "在web.xml中配置session-timeout"
+        },
+        {
+            "id": "TOMCAT-BASE-014",
+            "name": "Cookie安全配置",
+            "description": "检查Cookie安全配置",
+            "command": "grep -rE 'useHttpOnly|secure' /opt/tomcat*/conf/ /usr/local/tomcat*/conf/ /etc/tomcat*/ 2>/dev/null | grep -v '#' | head -10",
+            "expected": "useHttpOnly",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "会话安全",
+            "remediation": "配置useHttpOnly=\"true\""
+        },
+        {
+            "id": "TOMCAT-BASE-015",
+            "name": "SSL连接器配置",
+            "description": "检查SSL连接器配置",
+            "command": "grep -E 'SSLEnabled|scheme=\"https\"' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#' | head -5",
+            "expected": "SSLEnabled",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "remediation": "配置SSL连接器"
+        },
+        {
+            "id": "TOMCAT-BASE-016",
+            "name": "禁用AJP连接器",
+            "description": "检查是否禁用AJP连接器",
+            "command": "grep -E 'AJPConnector|protocol.*AJP' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#' || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "medium",
+            "category": "网络配置",
+            "remediation": "如不需要AJP，应禁用或配置secret属性"
+        },
+        {
+            "id": "TOMCAT-BASE-017",
+            "name": "管理用户配置",
+            "description": "检查管理用户配置",
+            "command": "grep -E 'user.*roles' /opt/tomcat*/conf/tomcat-users.xml /usr/local/tomcat*/conf/tomcat-users.xml /etc/tomcat*/tomcat-users.xml 2>/dev/null | grep -v '#' | head -10",
+            "expected": "roles=\"",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "账户安全",
+            "remediation": "检查tomcat-users.xml中的用户权限配置"
+        },
+        {
+            "id": "TOMCAT-BASE-018",
+            "name": "默认账户检查",
+            "description": "检查是否存在默认账户",
+            "command": "grep -E 'username=\"tomcat\"|username=\"admin\"' /opt/tomcat*/conf/tomcat-users.xml /usr/local/tomcat*/conf/tomcat-users.xml /etc/tomcat*/tomcat-users.xml 2>/dev/null || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "账户安全",
+            "remediation": "删除或修改默认账户"
+        },
+        {
+            "id": "TOMCAT-BASE-019",
+            "name": "war包部署限制",
+            "description": "检查war包自动部署配置",
+            "command": "grep -E 'autoDeploy|deployOnStartup' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#' | head -5",
+            "expected": "autoDeploy=\"false\"",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "部署安全",
+            "remediation": "设置autoDeploy=\"false\""
+        },
+        {
+            "id": "TOMCAT-BASE-020",
+            "name": "错误报告阀门",
+            "description": "检查是否配置ErrorReportValve",
+            "command": "grep -E 'ErrorReportValve' /opt/tomcat*/conf/server.xml /usr/local/tomcat*/conf/server.xml /etc/tomcat*/server.xml 2>/dev/null | grep -v '#' | head -5",
+            "expected": "showReport=\"false\"",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "remediation": "配置ErrorReportValve隐藏错误详情"
+        }
+    ]
+}

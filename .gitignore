@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite3
+database/
+
+# Reports
+reports/
+*.xlsx
+*.docx
+
+# Python embed package (portable)
+python310-embed/
+*.zip
+
+# Output
+scripts/output/
+output/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temp
+*.tmp
+*.temp
+.cache/
+
+# Dependencies (embedded)
+lib/

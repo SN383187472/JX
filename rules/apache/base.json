@@ -1,0 +1,228 @@
+{
+    "name": "Apache 通用安全基线",
+    "version": "1.0.0",
+    "description": "Apache HTTP Server 通用安全配置检查规则",
+    "compliance": ["等保2.0", "CIS Apache Benchmark"],
+    "rules": [
+        {
+            "id": "APACHE-BASE-001",
+            "name": "隐藏版本信息",
+            "description": "检查是否配置ServerTokens隐藏版本号",
+            "command": "grep -E '^ServerTokens' /etc/httpd/conf/httpd.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "ServerTokens Prod",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "remediation": "在配置文件中添加: ServerTokens Prod"
+        },
+        {
+            "id": "APACHE-BASE-002",
+            "name": "隐藏服务器签名",
+            "description": "检查是否配置ServerSignature隐藏签名",
+            "command": "grep -E '^ServerSignature' /etc/httpd/conf/httpd.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "ServerSignature Off",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "remediation": "在配置文件中添加: ServerSignature Off"
+        },
+        {
+            "id": "APACHE-BASE-003",
+            "name": "禁用目录列表",
+            "description": "检查是否禁用目录索引功能",
+            "command": "grep -rE 'Options.*Indexes' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '^[^#]*-Indexes' | grep -v '#' || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "目录安全",
+            "remediation": "在Options中添加 -Indexes 或移除 Indexes"
+        },
+        {
+            "id": "APACHE-BASE-004",
+            "name": "禁用TRACE方法",
+            "description": "检查是否禁用TRACE HTTP方法",
+            "command": "grep -rE 'TraceEnable' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "TraceEnable Off",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "HTTP方法",
+            "remediation": "在配置文件中添加: TraceEnable Off"
+        },
+        {
+            "id": "APACHE-BASE-005",
+            "name": "配置文件权限",
+            "description": "检查Apache配置文件权限是否安全",
+            "command": "stat -c '%a' /etc/httpd/conf/httpd.conf 2>/dev/null || stat -c '%a' /etc/apache2/apache2.conf 2>/dev/null",
+            "expected": "640",
+            "check_type": "in",
+            "severity": "medium",
+            "category": "文件权限",
+            "remediation": "chmod 640 /etc/httpd/conf/httpd.conf"
+        },
+        {
+            "id": "APACHE-BASE-006",
+            "name": "访问日志配置",
+            "description": "检查是否配置访问日志",
+            "command": "grep -rE 'CustomLog' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "CustomLog",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "日志审计",
+            "remediation": "确保配置了CustomLog指令"
+        },
+        {
+            "id": "APACHE-BASE-007",
+            "name": "错误日志配置",
+            "description": "检查是否配置错误日志",
+            "command": "grep -rE 'ErrorLog' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "ErrorLog",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "日志审计",
+            "remediation": "确保配置了ErrorLog指令"
+        },
+        {
+            "id": "APACHE-BASE-008",
+            "name": "日志级别配置",
+            "description": "检查日志级别设置是否合理",
+            "command": "grep -rE '^LogLevel' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "LogLevel",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "日志审计",
+            "remediation": "建议设置 LogLevel warn 或更高"
+        },
+        {
+            "id": "APACHE-BASE-009",
+            "name": "限制请求体大小",
+            "description": "检查是否限制HTTP请求体大小",
+            "command": "grep -rE 'LimitRequestBody' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "LimitRequestBody",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源限制",
+            "remediation": "添加 LimitRequestBody 限制请求体大小"
+        },
+        {
+            "id": "APACHE-BASE-010",
+            "name": "超时设置",
+            "description": "检查连接超时设置",
+            "command": "grep -E '^Timeout' /etc/httpd/conf/httpd.conf /etc/apache2/apache2.conf 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "Timeout",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "建议设置 Timeout 60-300"
+        },
+        {
+            "id": "APACHE-BASE-011",
+            "name": "KeepAlive超时",
+            "description": "检查KeepAlive超时设置",
+            "command": "grep -E '^KeepAliveTimeout' /etc/httpd/conf/httpd.conf /etc/apache2/apache2.conf 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "KeepAliveTimeout",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "建议设置 KeepAliveTimeout 5-15"
+        },
+        {
+            "id": "APACHE-BASE-012",
+            "name": "最大客户端连接数",
+            "description": "检查MaxRequestWorkers配置",
+            "command": "grep -E 'MaxRequestWorkers|MaxClients' /etc/httpd/conf/httpd.conf /etc/apache2/mods-enabled/*.conf 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "Max",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源限制",
+            "remediation": "根据服务器配置设置合理的MaxRequestWorkers"
+        },
+        {
+            "id": "APACHE-BASE-013",
+            "name": "禁止符号链接跟随",
+            "description": "检查是否限制符号链接跟随",
+            "command": "grep -rE 'Options.*FollowSymLinks' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | grep -v 'SymLinksIfOwnerMatch' || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "medium",
+            "category": "目录安全",
+            "remediation": "使用 -FollowSymLinks 或 SymLinksIfOwnerMatch"
+        },
+        {
+            "id": "APACHE-BASE-014",
+            "name": "限制.htaccess覆盖",
+            "description": "检查AllowOverride配置",
+            "command": "grep -rE 'AllowOverride' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "AllowOverride None",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "配置安全",
+            "remediation": "设置 AllowOverride None 限制配置覆盖"
+        },
+        {
+            "id": "APACHE-BASE-015",
+            "name": "运行用户检查",
+            "description": "检查Apache是否以非root用户运行",
+            "command": "ps -ef | grep -E 'httpd|apache2' | grep -v root | grep -v grep | awk '{print $1}' | head -1",
+            "expected": "apache",
+            "check_type": "contains_not",
+            "severity": "high",
+            "category": "账户安全",
+            "remediation": "配置Apache以apache/www-data用户运行"
+        },
+        {
+            "id": "APACHE-BASE-016",
+            "name": "X-Frame-Options头",
+            "description": "检查是否配置X-Frame-Options响应头",
+            "command": "grep -rE 'X-Frame-Options' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "X-Frame-Options",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "remediation": "添加 Header always set X-Frame-Options \"SAMEORIGIN\""
+        },
+        {
+            "id": "APACHE-BASE-017",
+            "name": "X-Content-Type-Options头",
+            "description": "检查是否配置X-Content-Type-Options响应头",
+            "command": "grep -rE 'X-Content-Type-Options' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "X-Content-Type-Options",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "remediation": "添加 Header always set X-Content-Type-Options \"nosniff\""
+        },
+        {
+            "id": "APACHE-BASE-018",
+            "name": "X-XSS-Protection头",
+            "description": "检查是否配置X-XSS-Protection响应头",
+            "command": "grep -rE 'X-XSS-Protection' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "X-XSS-Protection",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "remediation": "添加 Header always set X-XSS-Protection \"1; mode=block\""
+        },
+        {
+            "id": "APACHE-BASE-019",
+            "name": "Content-Security-Policy头",
+            "description": "检查是否配置CSP响应头",
+            "command": "grep -rE 'Content-Security-Policy' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "Content-Security-Policy",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "remediation": "添加适当的Content-Security-Policy头"
+        },
+        {
+            "id": "APACHE-BASE-020",
+            "name": "禁用危险模块",
+            "description": "检查是否禁用不必要的危险模块",
+            "command": "apachectl -M 2>/dev/null | grep -E 'autoindex|status|info|userdir|imap|cgi' | grep -v ssl || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "medium",
+            "category": "模块安全",
+            "remediation": "禁用不必要的模块: autoindex, status, info, userdir, cgi"
+        }
+    ]
+}

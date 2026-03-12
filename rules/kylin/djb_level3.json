@@ -1,0 +1,229 @@
+{
+  "name": "麒麟系统等保三级基线",
+  "version": "1.0.0",
+  "description": "符合等保2.0三级要求的麒麟操作系统安全基线检查",
+  "compliance": ["等保2.0-三级"],
+  "category": "安全计算环境",
+  "rules": [
+    {
+      "id": "DB-KYLIN-001",
+      "name": "身份鉴别-密码复杂度",
+      "description": "检查密码复杂度要求：至少包含大小写字母、数字、特殊字符",
+      "command": "grep -E 'pam_pwquality|pam_cracklib' /etc/pam.d/system-auth /etc/pam.d/password-auth 2>/dev/null || grep 'minlen\\|minclass' /etc/security/pwquality.conf 2>/dev/null",
+      "expected": "minlen",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-KYLIN-002",
+      "name": "身份鉴别-密码历史",
+      "description": "检查是否设置密码历史记录，防止重复使用旧密码",
+      "command": "grep 'remember' /etc/pam.d/system-auth /etc/pam.d/password-auth 2>/dev/null",
+      "expected": "remember",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-KYLIN-003",
+      "name": "身份鉴别-登录失败处理",
+      "description": "检查登录失败次数限制和锁定策略",
+      "command": "grep -E 'deny=|unlock_time=|fail_interval=' /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/login 2>/dev/null",
+      "expected": "deny=",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-KYLIN-004",
+      "name": "访问控制-特权用户限制",
+      "description": "检查root账户是否被限制直接登录",
+      "command": "grep -E '^root:' /etc/passwd && grep '^PermitRootLogin' /etc/ssh/sshd_config",
+      "expected": "PermitRootLogin no",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "等保2.0-三级-安全计算环境-访问控制"
+    },
+    {
+      "id": "DB-KYLIN-005",
+      "name": "访问控制-默认UMASK",
+      "description": "检查默认UMASK设置是否安全",
+      "command": "grep -E '^UMASK|^umask' /etc/profile /etc/bashrc /etc/csh.login /etc/csh.cshrc 2>/dev/null | head -5",
+      "expected": "077",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "访问控制",
+      "compliance": "等保2.0-三级-安全计算环境-访问控制"
+    },
+    {
+      "id": "DB-KYLIN-006",
+      "name": "安全审计-审计服务状态",
+      "description": "检查auditd审计服务是否正常运行",
+      "command": "systemctl is-active auditd 2>/dev/null && systemctl is-enabled auditd 2>/dev/null",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "安全审计",
+      "compliance": "等保2.0-三级-安全计算环境-安全审计"
+    },
+    {
+      "id": "DB-KYLIN-007",
+      "name": "安全审计-审计规则配置",
+      "description": "检查审计规则是否配置完整",
+      "command": "auditctl -l 2>/dev/null | wc -l || cat /etc/audit/audit.rules 2>/dev/null | grep -v '^#' | grep -v '^$' | wc -l",
+      "expected": "1",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "安全审计",
+      "compliance": "等保2.0-三级-安全计算环境-安全审计"
+    },
+    {
+      "id": "DB-KYLIN-008",
+      "name": "安全审计-日志存储",
+      "description": "检查审计日志存储空间和保留策略",
+      "command": "df -h /var/log/audit 2>/dev/null || df -h /var/log 2>/dev/null | tail -1",
+      "expected": "/",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "等保2.0-三级-安全计算环境-安全审计"
+    },
+    {
+      "id": "DB-KYLIN-009",
+      "name": "入侵防范-防火墙策略",
+      "description": "检查防火墙是否启用并配置策略",
+      "command": "systemctl is-active firewalld 2>/dev/null || systemctl is-active iptables 2>/dev/null || iptables -L -n 2>/dev/null | head -5",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "入侵防范",
+      "compliance": "等保2.0-三级-安全区域边界-入侵防范"
+    },
+    {
+      "id": "DB-KYLIN-010",
+      "name": "入侵防范-危险服务检查",
+      "description": "检查是否关闭telnet、ftp等不安全服务",
+      "command": "systemctl is-active telnet.socket 2>/dev/null; systemctl is-active vsftpd 2>/dev/null; systemctl is-active proftpd 2>/dev/null; netstat -tuln | grep -E ':23|:21'",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "入侵防范",
+      "compliance": "等保2.0-三级-安全区域边界-入侵防范"
+    },
+    {
+      "id": "DB-KYLIN-011",
+      "name": "入侵防范-开放端口检查",
+      "description": "检查开放端口是否最小化",
+      "command": "netstat -tuln | grep LISTEN | wc -l",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "入侵防范",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-KYLIN-012",
+      "name": "通信安全-SSH配置",
+      "description": "检查SSH安全配置",
+      "command": "grep -E '^Protocol|^PermitRootLogin|^PermitEmptyPasswords|^PasswordAuthentication|^MaxAuthTries|^ClientAliveInterval' /etc/ssh/sshd_config 2>/dev/null",
+      "expected": "PermitRootLogin no",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "通信安全",
+      "compliance": "等保2.0-三级-安全通信网络"
+    },
+    {
+      "id": "DB-KYLIN-013",
+      "name": "通信安全-SSH版本",
+      "description": "检查SSH协议版本是否为2",
+      "command": "sshd -V 2>&1 | head -1 || rpm -qa openssh 2>/dev/null || dpkg -l openssh-server 2>/dev/null",
+      "expected": "OpenSSH",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "通信安全",
+      "compliance": "等保2.0-三级-安全通信网络"
+    },
+    {
+      "id": "DB-KYLIN-014",
+      "name": "资源控制-进程数限制",
+      "description": "检查用户进程数限制",
+      "command": "grep -E '^[^#]*nproc' /etc/security/limits.conf 2>/dev/null || ulimit -u",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "low",
+      "category": "资源控制",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-KYLIN-015",
+      "name": "资源控制-文件句柄限制",
+      "description": "检查文件句柄数限制",
+      "command": "grep -E '^[^#]*nofile' /etc/security/limits.conf 2>/dev/null || ulimit -n",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "low",
+      "category": "资源控制",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-KYLIN-016",
+      "name": "恶意代码防范-杀毒软件",
+      "description": "检查是否安装杀毒软件",
+      "command": "which clamscan 2>/dev/null || which freshclam 2>/dev/null || rpm -qa clamav 2>/dev/null || dpkg -l clamav 2>/dev/null || echo '未检测到ClamAV'; systemctl is-active clamav-daemon 2>/dev/null || echo '杀毒服务未运行'",
+      "expected": "clam",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "恶意代码防范",
+      "compliance": "等保2.0-三级-安全计算环境-恶意代码防范"
+    },
+    {
+      "id": "DB-KYLIN-017",
+      "name": "补丁更新-系统补丁",
+      "description": "检查系统补丁更新情况",
+      "command": "cat /etc/os-release | grep -E '^VERSION|^NAME'; uptime",
+      "expected": "VERSION",
+      "check_type": "contains",
+      "severity": "low",
+      "category": "补丁管理",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-KYLIN-018",
+      "name": "账户管理-默认账户",
+      "description": "检查是否存在默认账户",
+      "command": "cat /etc/passwd | grep -E '/bin/bash|/bin/sh' | cut -d: -f1",
+      "expected": "root",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "账户管理",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-KYLIN-019",
+      "name": "账户管理-空密码账户",
+      "description": "检查是否存在空密码账户",
+      "command": "awk -F: '($2 == \"\") {print $1}' /etc/shadow 2>/dev/null",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户管理",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-KYLIN-020",
+      "name": "账户管理-过期账户",
+      "description": "检查是否存在过期账户",
+      "command": "awk -F: '($7 != \"\" && $7 < \"'$(date +%Y-%m-%d)'\") {print $1}' /etc/shadow 2>/dev/null | head -5",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "low",
+      "category": "账户管理",
+      "compliance": "等保2.0-三级-安全计算环境"
+    }
+  ]
+}

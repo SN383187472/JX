@@ -1,0 +1,88 @@
+{
+    "name": "Redis 信息收集规则",
+    "version": "1.0.0",
+    "description": "Redis 版本和配置信息收集",
+    "compliance": ["信息收集"],
+    "rules": [
+        {
+            "id": "REDIS-INFO-001",
+            "name": "Redis版本信息",
+            "description": "收集Redis版本信息",
+            "command": "redis-server --version 2>/dev/null || redis-cli INFO server 2>/dev/null | grep redis_version",
+            "check_type": "info",
+            "category": "版本信息"
+        },
+        {
+            "id": "REDIS-INFO-002",
+            "name": "运行模式",
+            "description": "收集Redis运行模式",
+            "command": "redis-cli INFO server 2>/dev/null | grep -E 'redis_mode|os'",
+            "check_type": "info",
+            "category": "运行状态"
+        },
+        {
+            "id": "REDIS-INFO-003",
+            "name": "内存使用情况",
+            "description": "收集Redis内存使用情况",
+            "command": "redis-cli INFO memory 2>/dev/null | head -20",
+            "check_type": "info",
+            "category": "资源状态"
+        },
+        {
+            "id": "REDIS-INFO-004",
+            "name": "客户端连接信息",
+            "description": "收集客户端连接信息",
+            "command": "redis-cli INFO clients 2>/dev/null",
+            "check_type": "info",
+            "category": "连接状态"
+        },
+        {
+            "id": "REDIS-INFO-005",
+            "name": "持久化状态",
+            "description": "收集持久化状态信息",
+            "command": "redis-cli INFO persistence 2>/dev/null",
+            "check_type": "info",
+            "category": "数据安全"
+        },
+        {
+            "id": "REDIS-INFO-006",
+            "name": "复制信息",
+            "description": "收集主从复制信息",
+            "command": "redis-cli INFO replication 2>/dev/null",
+            "check_type": "info",
+            "category": "复制状态"
+        },
+        {
+            "id": "REDIS-INFO-007",
+            "name": "统计信息",
+            "description": "收集Redis统计信息",
+            "command": "redis-cli INFO stats 2>/dev/null | head -30",
+            "check_type": "info",
+            "category": "运行状态"
+        },
+        {
+            "id": "REDIS-INFO-008",
+            "name": "配置信息",
+            "description": "收集Redis配置信息",
+            "command": "redis-cli CONFIG GET '*' 2>/dev/null | head -50",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "REDIS-INFO-009",
+            "name": "数据库大小",
+            "description": "收集各数据库key数量",
+            "command": "redis-cli INFO keyspace 2>/dev/null",
+            "check_type": "info",
+            "category": "数据状态"
+        },
+        {
+            "id": "REDIS-INFO-010",
+            "name": "运行进程信息",
+            "description": "收集Redis进程信息",
+            "command": "ps aux | grep redis | grep -v grep",
+            "check_type": "info",
+            "category": "运行状态"
+        }
+    ]
+}

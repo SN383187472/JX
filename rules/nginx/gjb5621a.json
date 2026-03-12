@@ -1,0 +1,283 @@
+{
+    "name": "Nginx GJB 5621A 合规基线",
+    "version": "1.0.0",
+    "description": "Nginx GJB 5621A 军用软件安全要求检查规则",
+    "compliance": ["GJB 5621A"],
+    "rules": [
+        {
+            "id": "NGINX-GJB-001",
+            "name": "SSL协议版本",
+            "description": "GJB 5621A-5.3.1 应禁用不安全的SSL协议",
+            "command": "grep -rE 'ssl_protocols' /etc/nginx/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "TLSv1.2",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.1"
+        },
+        {
+            "id": "NGINX-GJB-002",
+            "name": "加密套件配置",
+            "description": "GJB 5621A-5.3.2 应配置安全的加密套件",
+            "command": "grep -rE 'ssl_ciphers' /etc/nginx/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "HIGH:!aNULL:!MD5",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.2"
+        },
+        {
+            "id": "NGINX-GJB-003",
+            "name": "SSL证书配置",
+            "description": "GJB 5621A-5.3.3 应配置有效的SSL证书",
+            "command": "grep -rE 'ssl_certificate' /etc/nginx/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "ssl_certificate",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.3"
+        },
+        {
+            "id": "NGINX-GJB-004",
+            "name": "SSL私钥配置",
+            "description": "GJB 5621A-5.3.3 应配置SSL私钥",
+            "command": "grep -rE 'ssl_certificate_key' /etc/nginx/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "ssl_certificate_key",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.3"
+        },
+        {
+            "id": "NGINX-GJB-005",
+            "name": "私钥文件权限",
+            "description": "GJB 5621A-5.3.3 私钥文件应设置严格权限",
+            "command": "find /etc/nginx -name '*.key' -exec stat -c '%a %n' {} \\; 2>/dev/null",
+            "expected": "",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "密钥安全",
+            "gjb_ref": "GJB 5621A-5.3.3"
+        },
+        {
+            "id": "NGINX-GJB-006",
+            "name": "访问控制-IP限制",
+            "description": "GJB 5621A-4.4.1 应配置基于IP的访问控制",
+            "command": "grep -rE 'allow|deny' /etc/nginx/ 2>/dev/null | grep -v '#' | head -10",
+            "expected": "allow",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.1"
+        },
+        {
+            "id": "NGINX-GJB-007",
+            "name": "目录访问限制",
+            "description": "GJB 5621A-4.4.2 应限制对敏感目录的访问",
+            "command": "grep -rE 'location.*deny|return 403' /etc/nginx/ 2>/dev/null | grep -v '#' | head -10",
+            "expected": "deny",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.2"
+        },
+        {
+            "id": "NGINX-GJB-008",
+            "name": "基本认证配置",
+            "description": "GJB 5621A-4.3.1 应配置用户认证机制",
+            "command": "grep -rE 'auth_basic|auth_basic_user_file' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "auth_basic",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.1"
+        },
+        {
+            "id": "NGINX-GJB-009",
+            "name": "密码文件权限",
+            "description": "GJB 5621A-4.3.2 密码文件应设置严格权限",
+            "command": "find /etc/nginx -name '.htpasswd' -exec stat -c '%a %n' {} \\; 2>/dev/null",
+            "expected": "",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.2"
+        },
+        {
+            "id": "NGINX-GJB-010",
+            "name": "访问日志格式",
+            "description": "GJB 5621A-5.4.1 访问日志应记录完整信息",
+            "command": "grep -rE 'log_format' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "log_format",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.1"
+        },
+        {
+            "id": "NGINX-GJB-011",
+            "name": "日志缓冲配置",
+            "description": "GJB 5621A-5.4.2 应配置日志缓冲提高性能",
+            "command": "grep -rE 'access_log.*buffer' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "buffer",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.2"
+        },
+        {
+            "id": "NGINX-GJB-012",
+            "name": "日志文件权限",
+            "description": "GJB 5621A-5.4.3 日志文件应设置适当权限",
+            "command": "stat -c '%a' /var/log/nginx/ 2>/dev/null",
+            "expected": "750",
+            "check_type": "in",
+            "severity": "medium",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.3"
+        },
+        {
+            "id": "NGINX-GJB-013",
+            "name": "连接数限制",
+            "description": "GJB 5621A-5.5.1 应配置连接数限制",
+            "command": "grep -rE 'limit_conn_zone|limit_conn' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "limit_conn",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.1"
+        },
+        {
+            "id": "NGINX-GJB-014",
+            "name": "请求频率限制",
+            "description": "GJB 5621A-5.5.1 应配置请求频率限制",
+            "command": "grep -rE 'limit_req_zone|limit_req' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "limit_req",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.1"
+        },
+        {
+            "id": "NGINX-GJB-015",
+            "name": "请求体大小限制",
+            "description": "GJB 5621A-5.5.2 应限制请求体大小",
+            "command": "grep -rE 'client_max_body_size' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "client_max_body_size",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.2"
+        },
+        {
+            "id": "NGINX-GJB-016",
+            "name": "错误页面配置",
+            "description": "GJB 5621A-4.2.3 错误页面不应泄露敏感信息",
+            "command": "grep -rE 'error_page' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "error_page",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "gjb_ref": "GJB 5621A-4.2.3"
+        },
+        {
+            "id": "NGINX-GJB-017",
+            "name": "PHP执行限制",
+            "description": "GJB 5621A-4.5.1 应限制上传目录的PHP执行",
+            "command": "grep -rE 'location.*\\.php' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "fastcgi_pass",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "脚本安全",
+            "gjb_ref": "GJB 5621A-4.5.1"
+        },
+        {
+            "id": "NGINX-GJB-018",
+            "name": "WebDAV禁用",
+            "description": "GJB 5621A-4.5.2 应禁用WebDAV模块",
+            "command": "nginx -V 2>&1 | grep -i webdav || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "medium",
+            "category": "模块安全",
+            "gjb_ref": "GJB 5621A-4.5.2"
+        },
+        {
+            "id": "NGINX-GJB-019",
+            "name": "代理缓冲配置",
+            "description": "GJB 5621A-5.5.3 代理应配置缓冲区",
+            "command": "grep -rE 'proxy_buffer' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "proxy_buffer",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "代理安全",
+            "gjb_ref": "GJB 5621A-5.5.3"
+        },
+        {
+            "id": "NGINX-GJB-020",
+            "name": "代理超时配置",
+            "description": "GJB 5621A-5.5.3 代理应配置超时时间",
+            "command": "grep -rE 'proxy_read_timeout|proxy_connect_timeout' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "proxy",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "代理安全",
+            "gjb_ref": "GJB 5621A-5.5.3"
+        },
+        {
+            "id": "NGINX-GJB-021",
+            "name": "上游服务器隐藏",
+            "description": "GJB 5621A-4.4.3 应隐藏上游服务器信息",
+            "command": "grep -rE 'proxy_hide_header|server_tokens off' /etc/nginx/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "hide_header",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "gjb_ref": "GJB 5621A-4.4.3"
+        },
+        {
+            "id": "NGINX-GJB-022",
+            "name": "SSL会话缓存",
+            "description": "GJB 5621A-5.3.4 应配置SSL会话缓存",
+            "command": "grep -rE 'ssl_session_cache' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "ssl_session_cache",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.4"
+        },
+        {
+            "id": "NGINX-GJB-023",
+            "name": "SSL会话超时",
+            "description": "GJB 5621A-5.3.4 应配置SSL会话超时",
+            "command": "grep -rE 'ssl_session_timeout' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "ssl_session_timeout",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.4"
+        },
+        {
+            "id": "NGINX-GJB-024",
+            "name": "HSTS配置",
+            "description": "GJB 5621A-5.3.5 应配置HSTS响应头",
+            "command": "grep -rE 'Strict-Transport-Security' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "Strict-Transport-Security",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.5"
+        },
+        {
+            "id": "NGINX-GJB-025",
+            "name": "CSP配置",
+            "description": "GJB 5621A-4.2.4 应配置内容安全策略",
+            "command": "grep -rE 'Content-Security-Policy' /etc/nginx/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "Content-Security-Policy",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全头",
+            "gjb_ref": "GJB 5621A-4.2.4"
+        }
+    ]
+}

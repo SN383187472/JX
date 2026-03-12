@@ -1,0 +1,174 @@
+{
+  "name": "达梦数据库等保三级基线",
+  "version": "1.0.0",
+  "description": "符合等保2.0三级要求的达梦数据库安全基线检查",
+  "compliance": ["等保2.0-三级"],
+  "category": "安全计算环境-数据库安全",
+  "rules": [
+    {
+      "id": "DB-DM-001",
+      "name": "身份鉴别-密码策略",
+      "description": "检查数据库密码策略配置",
+      "command": "grep -E 'PWD_POLICY|PASSWORD' /dm8/data/*/dm.ini 2>/dev/null || grep -E 'PWD_POLICY|PASSWORD' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "PWD_POLICY",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-DM-002",
+      "name": "身份鉴别-密码有效期",
+      "description": "检查密码有效期设置",
+      "command": "grep 'PWD_MAX_LOCK_TIME' /dm8/data/*/dm.ini 2>/dev/null || grep 'PWD_MAX_LOCK_TIME' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "PWD_MAX_LOCK_TIME",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-DM-003",
+      "name": "身份鉴别-登录失败处理",
+      "description": "检查登录失败锁定策略",
+      "command": "grep -E 'LOGIN_MODE|LOGIN_RETRY' /dm8/data/*/dm.ini 2>/dev/null || grep -E 'LOGIN_MODE|LOGIN_RETRY' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "等保2.0-三级-安全计算环境-身份鉴别"
+    },
+    {
+      "id": "DB-DM-004",
+      "name": "访问控制-权限分离",
+      "description": "检查是否存在DBA权限过度分配",
+      "command": "ps -ef | grep dmserver | grep -v grep | awk '{print $1}'",
+      "expected": "dmdba",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "等保2.0-三级-安全计算环境-访问控制"
+    },
+    {
+      "id": "DB-DM-005",
+      "name": "访问控制-默认账户",
+      "description": "检查默认账户状态",
+      "command": "ls -la /dm8/data/*/dm.ini 2>/dev/null || ls -la /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "dm.ini",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "访问控制",
+      "compliance": "等保2.0-三级-安全计算环境-访问控制"
+    },
+    {
+      "id": "DB-DM-006",
+      "name": "安全审计-审计开关",
+      "description": "检查审计功能是否启用",
+      "command": "grep -E 'ENABLE_ENCRYPT|AUDIT' /dm8/data/*/dm.ini 2>/dev/null || grep -E 'ENABLE_ENCRYPT|AUDIT' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "安全审计",
+      "compliance": "等保2.0-三级-安全计算环境-安全审计"
+    },
+    {
+      "id": "DB-DM-007",
+      "name": "安全审计-审计日志",
+      "description": "检查审计日志存储",
+      "command": "ls -la /dm8/log/*.log 2>/dev/null || ls -la /opt/dmdbms/log/*.log 2>/dev/null",
+      "expected": ".log",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "等保2.0-三级-安全计算环境-安全审计"
+    },
+    {
+      "id": "DB-DM-008",
+      "name": "通信安全-加密传输",
+      "description": "检查是否启用通信加密",
+      "command": "grep 'ENABLE_ENCRYPT' /dm8/data/*/dm.ini 2>/dev/null || grep 'ENABLE_ENCRYPT' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "1",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "通信安全",
+      "compliance": "等保2.0-三级-安全通信网络"
+    },
+    {
+      "id": "DB-DM-009",
+      "name": "资源控制-连接数限制",
+      "description": "检查最大连接数配置",
+      "command": "grep 'MAX_SESSIONS' /dm8/data/*/dm.ini 2>/dev/null || grep 'MAX_SESSIONS' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "MAX_SESSIONS",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资源控制",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-DM-010",
+      "name": "资源控制-会话超时",
+      "description": "检查会话超时配置",
+      "command": "grep 'MAX_IDLE_TIME' /dm8/data/*/dm.ini 2>/dev/null || grep 'MAX_IDLE_TIME' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "low",
+      "category": "资源控制",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-DM-011",
+      "name": "数据完整性-备份策略",
+      "description": "检查数据库备份配置",
+      "command": "ls -la /dm8/bak/ 2>/dev/null || ls -la /opt/dmdbms/bak/ 2>/dev/null || echo '建议配置备份目录'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "数据完整性",
+      "compliance": "等保2.0-三级-安全计算环境-数据完整性"
+    },
+    {
+      "id": "DB-DM-012",
+      "name": "入侵防范-端口监听",
+      "description": "检查数据库端口监听状态",
+      "command": "netstat -tuln | grep -E '5236|5237'",
+      "expected": "5236",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "入侵防范",
+      "compliance": "等保2.0-三级-安全区域边界"
+    },
+    {
+      "id": "DB-DM-013",
+      "name": "文件权限-数据目录",
+      "description": "检查数据目录权限",
+      "command": "stat -c '%a' /dm8/data 2>/dev/null || stat -c '%a' /opt/dmdbms/data 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "文件安全",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-DM-014",
+      "name": "文件权限-配置文件",
+      "description": "检查dm.ini权限",
+      "command": "stat -c '%a' /dm8/data/*/dm.ini 2>/dev/null || stat -c '%a' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "600",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "文件安全",
+      "compliance": "等保2.0-三级-安全计算环境"
+    },
+    {
+      "id": "DB-DM-015",
+      "name": "服务状态-运行用户",
+      "description": "检查数据库服务运行用户",
+      "command": "ps -ef | grep dmserver | grep -v grep | awk '{print $1}'",
+      "expected": "dmdba",
+      "check_type": "equals",
+      "severity": "medium",
+      "category": "服务安全",
+      "compliance": "等保2.0-三级-安全计算环境"
+    }
+  ]
+}

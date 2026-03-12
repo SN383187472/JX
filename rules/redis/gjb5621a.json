@@ -1,0 +1,283 @@
+{
+    "name": "Redis GJB 5621A 合规基线",
+    "version": "1.0.0",
+    "description": "Redis GJB 5621A 军用软件安全要求检查规则",
+    "compliance": ["GJB 5621A"],
+    "rules": [
+        {
+            "id": "REDIS-GJB-001",
+            "name": "身份鉴别要求",
+            "description": "GJB 5621A-4.3.1 应配置身份鉴别机制",
+            "command": "grep -E '^requirepass' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "requirepass",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.1"
+        },
+        {
+            "id": "REDIS-GJB-002",
+            "name": "密码复杂度要求",
+            "description": "GJB 5621A-4.3.2 密码应满足复杂度要求",
+            "command": "grep -E '^requirepass' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | awk '{print length($2)}'",
+            "expected": "16",
+            "check_type": "greater_than",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.2"
+        },
+        {
+            "id": "REDIS-GJB-003",
+            "name": "访问控制-绑定地址",
+            "description": "GJB 5621A-4.4.1 应限制网络访问范围",
+            "command": "grep -E '^bind' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "127.0.0.1",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.1"
+        },
+        {
+            "id": "REDIS-GJB-004",
+            "name": "保护模式启用",
+            "description": "GJB 5621A-4.4.2 应启用保护模式",
+            "command": "grep -E '^protected-mode' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "protected-mode yes",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.2"
+        },
+        {
+            "id": "REDIS-GJB-005",
+            "name": "禁用CONFIG命令",
+            "description": "GJB 5621A-4.5.1 应禁用CONFIG命令",
+            "command": "grep -E 'rename-command.*CONFIG' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "rename-command CONFIG",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "命令安全",
+            "gjb_ref": "GJB 5621A-4.5.1"
+        },
+        {
+            "id": "REDIS-GJB-006",
+            "name": "禁用FLUSHALL命令",
+            "description": "GJB 5621A-4.5.1 应禁用FLUSHALL命令",
+            "command": "grep -E 'rename-command.*FLUSHALL' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "rename-command FLUSHALL",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "命令安全",
+            "gjb_ref": "GJB 5621A-4.5.1"
+        },
+        {
+            "id": "REDIS-GJB-007",
+            "name": "禁用FLUSHDB命令",
+            "description": "GJB 5621A-4.5.1 应禁用FLUSHDB命令",
+            "command": "grep -E 'rename-command.*FLUSHDB' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "rename-command FLUSHDB",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "命令安全",
+            "gjb_ref": "GJB 5621A-4.5.1"
+        },
+        {
+            "id": "REDIS-GJB-008",
+            "name": "禁用DEBUG命令",
+            "description": "GJB 5621A-4.5.1 应禁用DEBUG命令",
+            "command": "grep -E 'rename-command.*DEBUG' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "rename-command DEBUG",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "命令安全",
+            "gjb_ref": "GJB 5621A-4.5.1"
+        },
+        {
+            "id": "REDIS-GJB-009",
+            "name": "数据持久化要求",
+            "description": "GJB 5621A-5.6.1 应配置数据持久化",
+            "command": "grep -E '^save|^appendonly' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | grep -v '#'",
+            "expected": "save",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "数据安全",
+            "gjb_ref": "GJB 5621A-5.6.1"
+        },
+        {
+            "id": "REDIS-GJB-010",
+            "name": "AOF持久化要求",
+            "description": "GJB 5621A-5.6.1 应启用AOF持久化",
+            "command": "grep -E '^appendonly' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "appendonly yes",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "数据安全",
+            "gjb_ref": "GJB 5621A-5.6.1"
+        },
+        {
+            "id": "REDIS-GJB-011",
+            "name": "日志记录要求",
+            "description": "GJB 5621A-5.4.1 应配置日志记录",
+            "command": "grep -E '^logfile' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "logfile",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.1"
+        },
+        {
+            "id": "REDIS-GJB-012",
+            "name": "慢查询日志",
+            "description": "GJB 5621A-5.4.2 应配置慢查询日志",
+            "command": "grep -E '^slowlog' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "slowlog",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.2"
+        },
+        {
+            "id": "REDIS-GJB-013",
+            "name": "内存限制配置",
+            "description": "GJB 5621A-5.5.1 应配置内存限制",
+            "command": "grep -E '^maxmemory ' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "maxmemory",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.1"
+        },
+        {
+            "id": "REDIS-GJB-014",
+            "name": "内存淘汰策略",
+            "description": "GJB 5621A-5.5.2 应配置内存淘汰策略",
+            "command": "grep -E '^maxmemory-policy' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "maxmemory-policy",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.2"
+        },
+        {
+            "id": "REDIS-GJB-015",
+            "name": "连接数限制",
+            "description": "GJB 5621A-5.5.3 应配置最大连接数",
+            "command": "grep -E '^maxclients' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "maxclients",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.3"
+        },
+        {
+            "id": "REDIS-GJB-016",
+            "name": "配置文件权限",
+            "description": "GJB 5621A-4.2.1 配置文件应设置严格权限",
+            "command": "stat -c '%a' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | head -1",
+            "expected": "600",
+            "check_type": "in",
+            "severity": "medium",
+            "category": "文件权限",
+            "gjb_ref": "GJB 5621A-4.2.1"
+        },
+        {
+            "id": "REDIS-GJB-017",
+            "name": "数据文件权限",
+            "description": "GJB 5621A-5.6.2 数据文件应设置适当权限",
+            "command": "find /var/lib/redis -type f -exec stat -c '%a %n' {} \\; 2>/dev/null | head -10",
+            "expected": "600",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "文件权限",
+            "gjb_ref": "GJB 5621A-5.6.2"
+        },
+        {
+            "id": "REDIS-GJB-018",
+            "name": "运行用户要求",
+            "description": "GJB 5621A-4.2.2 应以非root用户运行",
+            "command": "ps -ef | grep redis-server | grep -v grep | awk '{print $1}' | head -1",
+            "expected": "redis",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "账户安全",
+            "gjb_ref": "GJB 5621A-4.2.2"
+        },
+        {
+            "id": "REDIS-GJB-019",
+            "name": "非默认端口",
+            "description": "GJB 5621A-4.4.3 应使用非默认端口",
+            "command": "grep -E '^port' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | awk '{print $2}'",
+            "expected": "6379",
+            "check_type": "not_equals",
+            "severity": "medium",
+            "category": "网络访问",
+            "gjb_ref": "GJB 5621A-4.4.3"
+        },
+        {
+            "id": "REDIS-GJB-020",
+            "name": "禁用KEYS命令",
+            "description": "GJB 5621A-4.5.2 应禁用KEYS命令",
+            "command": "grep -E 'rename-command.*KEYS' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "rename-command KEYS",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "命令安全",
+            "gjb_ref": "GJB 5621A-4.5.2"
+        },
+        {
+            "id": "REDIS-GJB-021",
+            "name": "TLS连接加密",
+            "description": "GJB 5621A-5.3.1 应配置TLS加密连接",
+            "command": "grep -E '^tls-port|^tls-cert-file' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "tls",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.1"
+        },
+        {
+            "id": "REDIS-GJB-022",
+            "name": "禁用SHUTDOWN命令",
+            "description": "GJB 5621A-4.5.3 应禁用SHUTDOWN命令",
+            "command": "grep -E 'rename-command.*SHUTDOWN' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "rename-command SHUTDOWN",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "命令安全",
+            "gjb_ref": "GJB 5621A-4.5.3"
+        },
+        {
+            "id": "REDIS-GJB-023",
+            "name": "备份策略配置",
+            "description": "GJB 5621A-5.6.3 应配置数据备份策略",
+            "command": "ls -la /var/lib/redis/dump.rdb /var/lib/redis/appendonly.aof 2>/dev/null | head -5",
+            "expected": "dump.rdb",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "数据安全",
+            "gjb_ref": "GJB 5621A-5.6.3"
+        },
+        {
+            "id": "REDIS-GJB-024",
+            "name": "主从复制认证",
+            "description": "GJB 5621A-5.7.1 主从复制应配置认证",
+            "command": "grep -E '^masterauth' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "masterauth",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "复制安全",
+            "gjb_ref": "GJB 5621A-5.7.1"
+        },
+        {
+            "id": "REDIS-GJB-025",
+            "name": "集群配置安全",
+            "description": "GJB 5621A-5.7.2 集群应配置认证",
+            "command": "grep -E '^cluster' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | head -5 || echo 'NOT_FOUND'",
+            "expected": "cluster",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "集群安全",
+            "gjb_ref": "GJB 5621A-5.7.2"
+        }
+    ]
+}

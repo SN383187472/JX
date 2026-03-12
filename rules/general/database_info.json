@@ -1,0 +1,173 @@
+{
+  "name": "数据库信息采集规则库",
+  "version": "1.0.0",
+  "description": "通用规则库 - 采集数据库目标对象的基础信息",
+  "compliance": ["通用信息采集"],
+  "rules": [
+    {
+      "id": "INFO-DB-001",
+      "name": "数据库版本",
+      "description": "采集数据库版本信息",
+      "sql": "SELECT VERSION();",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "版本信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-002",
+      "name": "数据库用户列表",
+      "description": "采集数据库用户列表",
+      "sql": "SELECT user,host FROM mysql.user;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "用户信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-003",
+      "name": "数据库列表",
+      "description": "采集数据库列表",
+      "sql": "SHOW DATABASES;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "数据库信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-004",
+      "name": "数据库表数量",
+      "description": "采集各数据库表数量",
+      "sql": "SELECT table_schema, COUNT(*) as table_count FROM information_schema.tables GROUP BY table_schema;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "数据库信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-005",
+      "name": "数据库大小",
+      "description": "采集各数据库大小",
+      "sql": "SELECT table_schema, ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb FROM information_schema.tables GROUP BY table_schema;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "数据库信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-006",
+      "name": "数据库配置变量",
+      "description": "采集数据库配置变量",
+      "sql": "SHOW VARIABLES;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "配置信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-007",
+      "name": "数据库状态",
+      "description": "采集数据库运行状态",
+      "sql": "SHOW STATUS;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "运行状态",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-008",
+      "name": "数据库引擎",
+      "description": "采集数据库存储引擎信息",
+      "sql": "SHOW ENGINES;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "存储引擎",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-009",
+      "name": "字符集配置",
+      "description": "采集数据库字符集配置",
+      "sql": "SHOW VARIABLES LIKE 'character%';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "字符集",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-010",
+      "name": "连接数信息",
+      "description": "采集当前连接数信息",
+      "sql": "SHOW STATUS LIKE 'Threads%';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "连接信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-011",
+      "name": "当前连接列表",
+      "description": "采集当前连接列表",
+      "sql": "SHOW PROCESSLIST;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "连接信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-012",
+      "name": "用户权限列表",
+      "description": "采集用户权限列表",
+      "sql": "SELECT user,host,Select_priv,Insert_priv,Update_priv,Delete_priv,Create_priv,Drop_priv,Grant_priv FROM mysql.user;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "权限信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-013",
+      "name": "插件列表",
+      "description": "采集已安装插件列表",
+      "sql": "SHOW PLUGINS;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "插件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-014",
+      "name": "主从复制状态",
+      "description": "采集主从复制状态",
+      "sql": "SHOW MASTER STATUS; SHOW SLAVE STATUS;",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "复制信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-DB-015",
+      "name": "二进制日志配置",
+      "description": "采集二进制日志配置",
+      "sql": "SHOW VARIABLES LIKE 'log_bin%';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "日志配置",
+      "compliance": "信息采集"
+    }
+  ]
+}

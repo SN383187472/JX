@@ -1,0 +1,228 @@
+{
+    "name": "Redis 通用安全基线",
+    "version": "1.0.0",
+    "description": "Redis 通用安全配置检查规则",
+    "compliance": ["等保2.0", "CIS Redis Benchmark"],
+    "rules": [
+        {
+            "id": "REDIS-BASE-001",
+            "name": "密码认证配置",
+            "description": "检查是否配置Redis密码认证",
+            "command": "grep -E '^requirepass' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "requirepass",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "身份鉴别",
+            "remediation": "在配置文件中设置: requirepass <strong_password>"
+        },
+        {
+            "id": "REDIS-BASE-002",
+            "name": "绑定地址配置",
+            "description": "检查Redis绑定地址",
+            "command": "grep -E '^bind' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "127.0.0.1",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "网络访问",
+            "remediation": "配置 bind 127.0.0.1 或限制内网IP"
+        },
+        {
+            "id": "REDIS-BASE-003",
+            "name": "保护模式",
+            "description": "检查是否启用保护模式",
+            "command": "grep -E '^protected-mode' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "protected-mode yes",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "访问控制",
+            "remediation": "配置 protected-mode yes"
+        },
+        {
+            "id": "REDIS-BASE-004",
+            "name": "端口配置",
+            "description": "检查Redis监听端口",
+            "command": "grep -E '^port' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "port",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "网络配置",
+            "remediation": "使用非默认端口增强安全性"
+        },
+        {
+            "id": "REDIS-BASE-005",
+            "name": "禁用危险命令",
+            "description": "检查是否禁用危险命令",
+            "command": "grep -E 'rename-command' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | head -10 || echo 'NOT_FOUND'",
+            "expected": "rename-command",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "命令安全",
+            "remediation": "重命名或禁用危险命令如 FLUSHALL, FLUSHDB, CONFIG, DEBUG"
+        },
+        {
+            "id": "REDIS-BASE-006",
+            "name": "数据持久化-RDB",
+            "description": "检查是否启用RDB持久化",
+            "command": "grep -E '^save' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "save",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "数据安全",
+            "remediation": "配置RDB持久化策略"
+        },
+        {
+            "id": "REDIS-BASE-007",
+            "name": "数据持久化-AOF",
+            "description": "检查是否启用AOF持久化",
+            "command": "grep -E '^appendonly' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "appendonly yes",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "数据安全",
+            "remediation": "配置 appendonly yes"
+        },
+        {
+            "id": "REDIS-BASE-008",
+            "name": "AOF同步策略",
+            "description": "检查AOF同步策略",
+            "command": "grep -E '^appendfsync' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "appendfsync",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "数据安全",
+            "remediation": "配置 appendfsync everysec"
+        },
+        {
+            "id": "REDIS-BASE-009",
+            "name": "最大内存配置",
+            "description": "检查是否配置最大内存",
+            "command": "grep -E '^maxmemory' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "maxmemory",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源限制",
+            "remediation": "配置 maxmemory 限制内存使用"
+        },
+        {
+            "id": "REDIS-BASE-010",
+            "name": "内存淘汰策略",
+            "description": "检查内存淘汰策略",
+            "command": "grep -E '^maxmemory-policy' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "maxmemory-policy",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "配置合适的内存淘汰策略"
+        },
+        {
+            "id": "REDIS-BASE-011",
+            "name": "最大客户端连接数",
+            "description": "检查最大客户端连接数配置",
+            "command": "grep -E '^maxclients' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "maxclients",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "配置 maxclients 限制客户端连接数"
+        },
+        {
+            "id": "REDIS-BASE-012",
+            "name": "超时配置",
+            "description": "检查客户端空闲超时配置",
+            "command": "grep -E '^timeout' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "timeout",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源限制",
+            "remediation": "配置 timeout 释放空闲连接"
+        },
+        {
+            "id": "REDIS-BASE-013",
+            "name": "日志级别",
+            "description": "检查日志级别配置",
+            "command": "grep -E '^loglevel' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "loglevel",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "日志审计",
+            "remediation": "配置 loglevel notice"
+        },
+        {
+            "id": "REDIS-BASE-014",
+            "name": "日志文件配置",
+            "description": "检查日志文件配置",
+            "command": "grep -E '^logfile' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "logfile",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "日志审计",
+            "remediation": "配置 logfile 指定日志文件"
+        },
+        {
+            "id": "REDIS-BASE-015",
+            "name": "配置文件权限",
+            "description": "检查Redis配置文件权限",
+            "command": "stat -c '%a' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null | head -1",
+            "expected": "640",
+            "check_type": "in",
+            "severity": "medium",
+            "category": "文件权限",
+            "remediation": "chmod 640 /etc/redis/redis.conf"
+        },
+        {
+            "id": "REDIS-BASE-016",
+            "name": "数据库数量限制",
+            "description": "检查数据库数量配置",
+            "command": "grep -E '^databases' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "databases",
+            "check_type": "contains",
+            "severity": "info",
+            "category": "配置信息",
+            "remediation": "根据需要配置数据库数量"
+        },
+        {
+            "id": "REDIS-BASE-017",
+            "name": "慢查询日志",
+            "description": "检查慢查询日志配置",
+            "command": "grep -E '^slowlog' /etc/redis/redis.conf /etc/redis.conf 2>/dev/null || echo 'NOT_FOUND'",
+            "expected": "slowlog",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "日志审计",
+            "remediation": "配置 slowlog 记录慢查询"
+        },
+        {
+            "id": "REDIS-BASE-018",
+            "name": "运行用户检查",
+            "description": "检查Redis运行用户",
+            "command": "ps -ef | grep redis-server | grep -v root | grep -v grep | awk '{print $1}' | head -1",
+            "expected": "redis",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "账户安全",
+            "remediation": "以redis用户运行Redis服务"
+        },
+        {
+            "id": "REDIS-BASE-019",
+            "name": "监听端口检查",
+            "description": "检查Redis实际监听端口",
+            "command": "netstat -tuln 2>/dev/null | grep 6379 || ss -tuln | grep 6379",
+            "expected": "127.0.0.1:6379",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "网络访问",
+            "remediation": "确保Redis仅监听本地或内网地址"
+        },
+        {
+            "id": "REDIS-BASE-020",
+            "name": "数据目录权限",
+            "description": "检查Redis数据目录权限",
+            "command": "stat -c '%a' /var/lib/redis 2>/dev/null || stat -c '%a' /var/lib/redis/ 2>/dev/null",
+            "expected": "750",
+            "check_type": "in",
+            "severity": "medium",
+            "category": "文件权限",
+            "remediation": "chmod 750 /var/lib/redis"
+        }
+    ]
+}

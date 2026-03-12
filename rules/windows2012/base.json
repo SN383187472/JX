@@ -1,0 +1,128 @@
+{
+  "name": "Windows Server 2012 安全基线",
+  "version": "1.0.0",
+  "description": "Windows Server 2012操作系统安全基线检查",
+  "compliance": ["等保2.0", "CIS"],
+  "rules": [
+    {
+      "id": "WS2012-001",
+      "name": "密码复杂度策略",
+      "description": "检查密码复杂度要求",
+      "command": "net accounts",
+      "expected": "密码最短长度",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WS2012-002",
+      "name": "密码最长有效期",
+      "description": "检查密码最长使用期限",
+      "command": "net accounts | findstr '密码最长使用期限'",
+      "expected": "90",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WS2012-003",
+      "name": "账户锁定策略",
+      "description": "检查账户锁定阈值",
+      "command": "net accounts | findstr '锁定阈值'",
+      "expected": "5",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WS2012-004",
+      "name": "来宾账户状态",
+      "description": "检查来宾账户是否禁用",
+      "command": "net user guest | findstr '帐户启用'",
+      "expected": "帐户启用                 否",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "WS2012-005",
+      "name": "Windows防火墙状态",
+      "description": "检查Windows防火墙是否启用",
+      "command": "netsh advfirewall show allprofiles state",
+      "expected": "ON",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络安全"
+    },
+    {
+      "id": "WS2012-006",
+      "name": "远程桌面设置",
+      "description": "检查远程桌面配置",
+      "command": "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server' /v fDenyTSConnections",
+      "expected": "0x1",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "远程访问"
+    },
+    {
+      "id": "WS2012-007",
+      "name": "UAC设置",
+      "description": "检查UAC是否启用",
+      "command": "reg query 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' /v EnableLUA",
+      "expected": "0x1",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "权限控制"
+    },
+    {
+      "id": "WS2012-008",
+      "name": "审计策略",
+      "description": "检查审计策略配置",
+      "command": "auditpol /get /category:*",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "审计日志"
+    },
+    {
+      "id": "WS2012-009",
+      "name": "不必要服务检查-IIS",
+      "description": "检查IIS是否必要",
+      "command": "sc query W3SVC | findstr 'RUNNING' || echo '未运行'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "服务安全"
+    },
+    {
+      "id": "WS2012-010",
+      "name": "SMB版本检查",
+      "description": "检查SMBv1是否禁用",
+      "command": "sc query LanmanServer | findstr 'RUNNING' && reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters' /v SMB1 2>nul || echo '需检查'",
+      "expected": "0x0",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络安全"
+    },
+    {
+      "id": "WS2012-011",
+      "name": "自动更新状态",
+      "description": "检查Windows自动更新配置",
+      "command": "reg query 'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU' /v AUOptions 2>nul || echo '需配置'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "补丁管理"
+    },
+    {
+      "id": "WS2012-012",
+      "name": "事件日志大小",
+      "description": "检查安全日志大小限制",
+      "command": "wevtutil gl Security | findstr 'fileSize'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "审计日志"
+    }
+  ]
+}

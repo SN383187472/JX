@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制面板 - {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>🔐 基线核查</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/dashboard" class="active">📊 控制面板</a></li>
+                <li><a href="/targets">🖥️ 目标管理</a></li>
+                <li><a href="/scan">🔍 安全扫描</a></li>
+                <li><a href="/results">📋 扫描结果</a></li>
+            </ul>
+            <div class="user-info">
+                <span>{{ user.username }}</span>
+                <button onclick="logout()" class="btn-logout">退出</button>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            <header>
+                <h1>控制面板</h1>
+            </header>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>检测目标</h3>
+                    <p class="stat-number" id="targetCount">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>扫描任务</h3>
+                    <p class="stat-number" id="scanCount">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>通过规则</h3>
+                    <p class="stat-number" id="passedCount">0</p>
+                </div>
+                <div class="stat-card danger">
+                    <h3>不符合项</h3>
+                    <p class="stat-number" id="failedCount">0</p>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h2>快速操作</h2>
+                <div class="action-buttons">
+                    <a href="/targets" class="btn-action">➕ 添加目标</a>
+                    <a href="/scan" class="btn-action">🚀 开始扫描</a>
+                    <a href="/results" class="btn-action">📊 查看结果</a>
+                </div>
+            </div>
+            
+            <div class="recent-results">
+                <h2>最近扫描</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>目标</th>
+                            <th>类型</th>
+                            <th>时间</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentTable">
+                        <tr><td colspan="4">暂无数据</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // 加载统计数据
+        async function loadStats() {
+            try {
+                const [targets, results] = await Promise.all([
+                    fetch('/api/targets').then(r => r.json()),
+                    fetch('/api/results').then(r => r.json())
+                ]);
+                
+                document.getElementById('targetCount').textContent = targets.data?.length || 0;
+                document.getElementById('scanCount').textContent = results.data?.length || 0;
+                
+                let passed = 0, failed = 0;
+                results.data?.forEach(r => {
+                    passed += r.passed_rules || 0;
+                    failed += r.failed_rules || 0;
+                });
+                
+                document.getElementById('passedCount').textContent = passed;
+                document.getElementById('failedCount').textContent = failed;
+                
+                // 最近扫描
+                const tbody = document.getElementById('recentTable');
+                if (results.data?.length > 0) {
+                    tbody.innerHTML = results.data.slice(0, 5).map(r => `
+                        <tr>
+                            <td>${r.target_name}</td>
+                            <td>${r.target_type}</td>
+                            <td>${new Date(r.scan_time).toLocaleString()}</td>
+                            <td><span class="badge ${r.failed_rules > 0 ? 'danger' : 'success'}">${r.passed_rules}/${r.total_rules}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+            }
+        }
+        
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/';
+        }
+        
+        loadStats();
+    </script>
+</body>
+</html>

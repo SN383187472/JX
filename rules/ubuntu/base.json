@@ -1,0 +1,158 @@
+{
+  "name": "Ubuntu 安全基线",
+  "version": "1.0.0",
+  "description": "Ubuntu操作系统安全基线检查",
+  "compliance": ["等保2.0", "CIS"],
+  "rules": [
+    {
+      "id": "UBUNTU-001",
+      "name": "密码最大有效期",
+      "description": "检查密码最大使用天数",
+      "command": "grep 'PASS_MAX_DAYS' /etc/login.defs | awk '{print $2}'",
+      "expected": "90",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "UBUNTU-002",
+      "name": "密码最小长度",
+      "description": "检查密码最小长度",
+      "command": "grep 'PASS_MIN_LEN' /etc/login.defs | awk '{print $2}'",
+      "expected": "8",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "UBUNTU-003",
+      "name": "禁止root远程登录",
+      "description": "检查是否禁止root远程SSH登录",
+      "command": "grep '^PermitRootLogin' /etc/ssh/sshd_config",
+      "expected": "PermitRootLogin no",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "访问控制"
+    },
+    {
+      "id": "UBUNTU-004",
+      "name": "UFW防火墙状态",
+      "description": "检查UFW防火墙状态",
+      "command": "ufw status 2>/dev/null || systemctl is-active ufw 2>/dev/null",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "边界防护"
+    },
+    {
+      "id": "UBUNTU-005",
+      "name": "AppArmor状态",
+      "description": "检查AppArmor是否启用",
+      "command": "aa-status 2>/dev/null || systemctl is-active apparmor",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "安全加固"
+    },
+    {
+      "id": "UBUNTU-006",
+      "name": "审计服务状态",
+      "description": "检查auditd服务状态",
+      "command": "systemctl is-active auditd 2>/dev/null || echo '需安装'",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "审计日志"
+    },
+    {
+      "id": "UBUNTU-007",
+      "name": "空密码账户检查",
+      "description": "检查是否存在空密码账户",
+      "command": "awk -F: '($2 == \"\") {print $1}' /etc/shadow",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "UBUNTU-008",
+      "name": "UID为0的账户",
+      "description": "检查UID为0的账户",
+      "command": "awk -F: '($3 == 0) {print $1}' /etc/passwd",
+      "expected": "root",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全"
+    },
+    {
+      "id": "UBUNTU-009",
+      "name": "unattended-upgrades",
+      "description": "检查自动更新配置",
+      "command": "systemctl is-active unattended-upgrades 2>/dev/null || dpkg -l unattended-upgrades 2>/dev/null",
+      "expected": "unattended-upgrades",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "补丁管理"
+    },
+    {
+      "id": "UBUNTU-010",
+      "name": "SSH协议版本",
+      "description": "检查SSH协议版本",
+      "command": "grep '^Protocol' /etc/ssh/sshd_config || echo '默认Protocol 2'",
+      "expected": "2",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "通信安全"
+    },
+    {
+      "id": "UBUNTU-011",
+      "name": "登录失败锁定-pam_faillock",
+      "description": "检查登录失败锁定策略",
+      "command": "grep 'pam_faillock\\|pam_tally2' /etc/pam.d/common-auth /etc/pam.d/sshd 2>/dev/null",
+      "expected": "pam_",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别"
+    },
+    {
+      "id": "UBUNTU-012",
+      "name": "密码复杂度-pwquality",
+      "description": "检查密码复杂度要求",
+      "command": "grep -E 'minlen|minclass' /etc/security/pwquality.conf 2>/dev/null || grep -E 'minlen|minclass' /etc/pam.d/common-password 2>/dev/null",
+      "expected": "minlen",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别"
+    },
+    {
+      "id": "UBUNTU-013",
+      "name": "snap服务检查",
+      "description": "检查snapd服务",
+      "command": "systemctl is-active snapd 2>/dev/null || echo '未使用'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "low",
+      "category": "服务安全"
+    },
+    {
+      "id": "UBUNTU-014",
+      "name": "rsyslog配置",
+      "description": "检查rsyslog是否启用",
+      "command": "systemctl is-active rsyslog",
+      "expected": "active",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "审计日志"
+    },
+    {
+      "id": "UBUNTU-015",
+      "name": "SSH MaxAuthTries",
+      "description": "检查SSH最大认证尝试次数",
+      "command": "grep 'MaxAuthTries' /etc/ssh/sshd_config",
+      "expected": "MaxAuthTries",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "访问控制"
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "name": "麒麟系统关保基线",
+  "version": "1.0.0",
+  "description": "符合关键信息基础设施安全保护要求的麒麟操作系统检查",
+  "compliance": ["关保"],
+  "category": "关键信息基础设施安全保护",
+  "rules": [
+    {
+      "id": "GB-KYLIN-001",
+      "name": "资产管理-设备标识",
+      "description": "检查设备是否设置唯一标识",
+      "command": "hostname && cat /etc/machine-id 2>/dev/null | head -1",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "资产管理",
+      "compliance": "关保-安全建设管理-资产管理"
+    },
+    {
+      "id": "GB-KYLIN-002",
+      "name": "资产管理-资产清单",
+      "description": "检查是否建立资产台账",
+      "command": "ls -la /var/log/asset* 2>/dev/null || ls -la /opt/asset* 2>/dev/null || echo '建议建立资产清单文件'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "low",
+      "category": "资产管理",
+      "compliance": "关保-安全建设管理-资产管理"
+    },
+    {
+      "id": "GB-KYLIN-003",
+      "name": "供应链安全-软件来源",
+      "description": "检查软件包来源验证",
+      "command": "grep 'gpgcheck' /etc/yum.conf 2>/dev/null || grep 'AllowUnauthenticated' /etc/apt/apt.conf.d/* 2>/dev/null || echo '检查软件源配置'",
+      "expected": "gpgcheck=1",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "供应链安全",
+      "compliance": "关保-安全建设管理-供应链安全"
+    },
+    {
+      "id": "GB-KYLIN-004",
+      "name": "安全监测-日志集中",
+      "description": "检查是否配置日志集中采集",
+      "command": "grep -E '^*.*' /etc/rsyslog.conf 2>/dev/null | grep '@' || cat /etc/rsyslog.d/*.conf 2>/dev/null | grep '@'",
+      "expected": "@",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "安全监测",
+      "compliance": "关保-安全运营-安全监测"
+    },
+    {
+      "id": "GB-KYLIN-005",
+      "name": "安全监测-日志保留",
+      "description": "检查日志保留期限（应不少于6个月）",
+      "command": "ls -la /var/log/ | head -10 && cat /etc/logrotate.conf | grep -E 'rotate|daily|weekly'",
+      "expected": "rotate",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全监测",
+      "compliance": "关保-安全运营-安全监测"
+    },
+    {
+      "id": "GB-KYLIN-006",
+      "name": "漏洞管理-补丁状态",
+      "description": "检查系统补丁更新状态",
+      "command": "uname -r && cat /etc/os-release | grep VERSION_ID",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "漏洞管理",
+      "compliance": "关保-安全运营-漏洞管理"
+    },
+    {
+      "id": "GB-KYLIN-007",
+      "name": "应急响应-备份策略",
+      "description": "检查是否配置系统备份",
+      "command": "ls -la /var/backups 2>/dev/null || ls -la /backup 2>/dev/null || which tar 2>/dev/null && echo '建议配置定期备份'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "应急响应",
+      "compliance": "关保-安全运营-应急响应"
+    },
+    {
+      "id": "GB-KYLIN-008",
+      "name": "访问控制-双因子认证",
+      "description": "检查是否配置双因子认证",
+      "command": "grep -E 'pam_google_authenticator|pam_oath|pam_totp' /etc/pam.d/* 2>/dev/null || echo '未配置双因子认证'",
+      "expected": "pam_",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "关保-安全防护-访问控制"
+    },
+    {
+      "id": "GB-KYLIN-009",
+      "name": "安全审计-审计留存",
+      "description": "检查审计日志留存时间",
+      "command": "cat /etc/audit/auditd.conf 2>/dev/null | grep -E 'max_log_file|num_logs|max_log_file_action'",
+      "expected": "max_log_file",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "关保-安全防护-安全审计"
+    },
+    {
+      "id": "GB-KYLIN-010",
+      "name": "入侵检测-HIDS",
+      "description": "检查是否部署主机入侵检测系统",
+      "command": "which ossec-agentd 2>/dev/null || which wazuh-agent 2>/dev/null || systemctl is-active ossec 2>/dev/null || systemctl is-active wazuh-agent 2>/dev/null || echo '建议部署HIDS'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "入侵检测",
+      "compliance": "关保-安全防护-入侵检测"
+    },
+    {
+      "id": "GB-KYLIN-011",
+      "name": "数据安全-磁盘加密",
+      "description": "检查是否启用磁盘加密",
+      "command": "lsblk -f 2>/dev/null | grep -E 'crypto|LUKS' || cat /etc/crypttab 2>/dev/null || echo '建议启用磁盘加密'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "数据安全",
+      "compliance": "关保-数据安全保护"
+    },
+    {
+      "id": "GB-KYLIN-012",
+      "name": "网络安全-网络隔离",
+      "description": "检查网络接口配置",
+      "command": "ip addr show | grep -E 'inet |UP' | head -10",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "low",
+      "category": "网络安全",
+      "compliance": "关保-安全防护-网络安全"
+    },
+    {
+      "id": "GB-KYLIN-013",
+      "name": "配置管理-配置基线",
+      "description": "检查是否有配置基线文件",
+      "command": "ls -la /etc/security/*.conf 2>/dev/null | head -5",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "low",
+      "category": "配置管理",
+      "compliance": "关保-安全建设管理-配置管理"
+    },
+    {
+      "id": "GB-KYLIN-014",
+      "name": "权限管理-sudo配置",
+      "description": "检查sudo权限配置",
+      "command": "cat /etc/sudoers 2>/dev/null | grep -v '^#' | grep -v '^$' | head -10",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "权限管理",
+      "compliance": "关保-安全防护-访问控制"
+    },
+    {
+      "id": "GB-KYLIN-015",
+      "name": "安全基线-CIS合规",
+      "description": "检查是否遵循安全基线标准",
+      "command": "grep -E '^PASS_MAX_DAYS|^PASS_MIN_LEN|^UMASK' /etc/login.defs /etc/profile 2>/dev/null",
+      "expected": "PASS_MAX_DAYS",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全基线",
+      "compliance": "关保-安全建设管理"
+    }
+  ]
+}

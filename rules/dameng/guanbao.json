@@ -1,0 +1,119 @@
+{
+  "name": "达梦数据库关保基线",
+  "version": "1.0.0",
+  "description": "符合关键信息基础设施安全保护要求的达梦数据库检查",
+  "compliance": ["关保"],
+  "category": "关键信息基础设施安全保护-数据库",
+  "rules": [
+    {
+      "id": "GB-DM-001",
+      "name": "资产管理-数据库标识",
+      "description": "检查数据库实例标识",
+      "command": "cat /dm8/data/*/dm.ini 2>/dev/null | grep 'INSTANCE_NAME' || cat /opt/dmdbms/data/*/dm.ini 2>/dev/null | grep 'INSTANCE_NAME'",
+      "expected": "INSTANCE_NAME",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资产管理",
+      "compliance": "关保-安全建设管理-资产管理"
+    },
+    {
+      "id": "GB-DM-002",
+      "name": "安全监测-日志采集",
+      "description": "检查数据库日志采集配置",
+      "command": "ls -la /dm8/log/ 2>/dev/null || ls -la /opt/dmdbms/log/ 2>/dev/null",
+      "expected": "log",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "安全监测",
+      "compliance": "关保-安全运营-安全监测"
+    },
+    {
+      "id": "GB-DM-003",
+      "name": "漏洞管理-版本状态",
+      "description": "检查数据库版本",
+      "command": "disql -v 2>/dev/null || /dm8/bin/disql -v 2>/dev/null || /opt/dmdbms/bin/disql -v 2>/dev/null",
+      "expected": "DM",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "漏洞管理",
+      "compliance": "关保-安全运营-漏洞管理"
+    },
+    {
+      "id": "GB-DM-004",
+      "name": "应急响应-备份验证",
+      "description": "检查备份文件有效性",
+      "command": "ls -la /dm8/bak/*.bak 2>/dev/null || ls -la /opt/dmdbms/bak/*.bak 2>/dev/null | head -5",
+      "expected": ".bak",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "应急响应",
+      "compliance": "关保-安全运营-应急响应"
+    },
+    {
+      "id": "GB-DM-005",
+      "name": "访问控制-IP限制",
+      "description": "检查IP访问控制配置",
+      "command": "grep 'WHITE_IP' /dm8/data/*/dm.ini 2>/dev/null || grep 'WHITE_IP' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "关保-安全防护-访问控制"
+    },
+    {
+      "id": "GB-DM-006",
+      "name": "数据安全-敏感数据保护",
+      "description": "检查敏感数据加密配置",
+      "command": "grep -E 'ENCRYPT|CRYPTO' /dm8/data/*/dm.ini 2>/dev/null || grep -E 'ENCRYPT|CRYPTO' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "数据安全",
+      "compliance": "关保-数据安全保护"
+    },
+    {
+      "id": "GB-DM-007",
+      "name": "入侵检测-异常访问",
+      "description": "检查异常访问日志",
+      "command": "tail -50 /dm8/log/dm_dmserver*.log 2>/dev/null | grep -iE 'error|fail|invalid' | head -5 || tail -50 /opt/dmdbms/log/dm_dmserver*.log 2>/dev/null | grep -iE 'error|fail|invalid' | head -5",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "medium",
+      "category": "入侵检测",
+      "compliance": "关保-安全防护-入侵检测"
+    },
+    {
+      "id": "GB-DM-008",
+      "name": "安全审计-操作审计",
+      "description": "检查操作审计配置",
+      "command": "grep 'AUDIT_MODE' /dm8/data/*/dm.ini 2>/dev/null || grep 'AUDIT_MODE' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "安全审计",
+      "compliance": "关保-安全防护-安全审计"
+    },
+    {
+      "id": "GB-DM-009",
+      "name": "高可用-主备配置",
+      "description": "检查主备同步配置",
+      "command": "grep -E 'DW_MODE|ARCH_TYPE' /dm8/data/*/dm.ini 2>/dev/null || grep -E 'DW_MODE|ARCH_TYPE' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "high",
+      "category": "高可用",
+      "compliance": "关保-安全运营-业务连续性"
+    },
+    {
+      "id": "GB-DM-010",
+      "name": "配置管理-参数基线",
+      "description": "检查关键参数配置",
+      "command": "grep -E 'BUFFER_SIZE|MAX_SESSIONS|MAX_THREADS' /dm8/data/*/dm.ini 2>/dev/null || grep -E 'BUFFER_SIZE|MAX_SESSIONS|MAX_THREADS' /opt/dmdbms/data/*/dm.ini 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "配置管理",
+      "compliance": "关保-安全建设管理-配置管理"
+    }
+  ]
+}

@@ -1,0 +1,283 @@
+{
+    "name": "Apache GJB 5621A 合规基线",
+    "version": "1.0.0",
+    "description": "Apache HTTP Server GJB 5621A 军用软件安全要求检查规则",
+    "compliance": ["GJB 5621A"],
+    "rules": [
+        {
+            "id": "APACHE-GJB-001",
+            "name": "SSL协议版本",
+            "description": "GJB 5621A-5.3.1 应禁用不安全的SSLv2/v3协议",
+            "command": "grep -rE 'SSLProtocol' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "-SSLv2 -SSLv3",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.1"
+        },
+        {
+            "id": "APACHE-GJB-002",
+            "name": "TLS版本要求",
+            "description": "GJB 5621A-5.3.1 应使用TLSv1.2或更高版本",
+            "command": "grep -rE 'SSLProtocol' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "TLSv1.2",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.1"
+        },
+        {
+            "id": "APACHE-GJB-003",
+            "name": "加密套件配置",
+            "description": "GJB 5621A-5.3.2 应配置安全的加密套件",
+            "command": "grep -rE 'SSLCipherSuite' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "HIGH:!aNULL:!MD5:!3DES",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.2"
+        },
+        {
+            "id": "APACHE-GJB-004",
+            "name": "服务器证书配置",
+            "description": "GJB 5621A-5.3.3 应配置有效的SSL服务器证书",
+            "command": "grep -rE 'SSLCertificateFile' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -3",
+            "expected": "SSLCertificateFile",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.3"
+        },
+        {
+            "id": "APACHE-GJB-005",
+            "name": "私钥文件权限",
+            "description": "GJB 5621A-5.3.3 私钥文件应设置严格权限",
+            "command": "find /etc/httpd /etc/apache2 /etc/pki /etc/ssl -name '*.key' -exec stat -c '%a %n' {} \\; 2>/dev/null | grep -v '600\\|400'",
+            "expected": "",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "密钥安全",
+            "gjb_ref": "GJB 5621A-5.3.3"
+        },
+        {
+            "id": "APACHE-GJB-006",
+            "name": "访问控制配置",
+            "description": "GJB 5621A-4.4.1 应配置基于IP的访问控制",
+            "command": "grep -rE 'Require|Allow|Deny' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "Require",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.1"
+        },
+        {
+            "id": "APACHE-GJB-007",
+            "name": "目录访问限制",
+            "description": "GJB 5621A-4.4.2 应限制对敏感目录的访问",
+            "command": "grep -rE '<Directory.*>|Require all denied' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -10",
+            "expected": "Require all denied",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.2"
+        },
+        {
+            "id": "APACHE-GJB-008",
+            "name": "认证机制配置",
+            "description": "GJB 5621A-4.3.1 应配置用户认证机制",
+            "command": "grep -rE 'AuthType|AuthName|AuthUserFile' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "AuthType",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.1"
+        },
+        {
+            "id": "APACHE-GJB-009",
+            "name": "密码文件权限",
+            "description": "GJB 5621A-4.3.2 密码文件应设置严格权限",
+            "command": "find /etc/httpd /etc/apache2 -name '.htpasswd' -exec stat -c '%a %n' {} \\; 2>/dev/null",
+            "expected": "",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "身份鉴别",
+            "gjb_ref": "GJB 5621A-4.3.2"
+        },
+        {
+            "id": "APACHE-GJB-010",
+            "name": "访问日志格式",
+            "description": "GJB 5621A-5.4.1 访问日志应记录完整信息",
+            "command": "grep -rE 'LogFormat' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "LogFormat",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.1"
+        },
+        {
+            "id": "APACHE-GJB-011",
+            "name": "日志保留期限",
+            "description": "GJB 5621A-5.4.2 应配置日志保留策略",
+            "command": "ls -la /var/log/httpd/ /var/log/apache2/ 2>/dev/null | head -10",
+            "expected": "access_log",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.2"
+        },
+        {
+            "id": "APACHE-GJB-012",
+            "name": "日志文件权限",
+            "description": "GJB 5621A-5.4.3 日志文件应设置适当权限",
+            "command": "stat -c '%a' /var/log/httpd/ /var/log/apache2/ 2>/dev/null | head -5",
+            "expected": "750",
+            "check_type": "in",
+            "severity": "medium",
+            "category": "安全审计",
+            "gjb_ref": "GJB 5621A-5.4.3"
+        },
+        {
+            "id": "APACHE-GJB-013",
+            "name": "连接数限制",
+            "description": "GJB 5621A-5.5.1 应配置最大连接数限制",
+            "command": "grep -E 'MaxRequestWorkers|MaxClients|MaxConnectionsPerChild' /etc/httpd/conf/httpd.conf /etc/apache2/mods-enabled/*.conf 2>/dev/null | grep -v '#'",
+            "expected": "Max",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.1"
+        },
+        {
+            "id": "APACHE-GJB-014",
+            "name": "请求大小限制",
+            "description": "GJB 5621A-5.5.2 应限制请求大小",
+            "command": "grep -rE 'LimitRequestBody|LimitXMLRequestBody' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "LimitRequestBody",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.2"
+        },
+        {
+            "id": "APACHE-GJB-015",
+            "name": "请求行长度限制",
+            "description": "GJB 5621A-5.5.2 应限制请求行长度",
+            "command": "grep -rE 'LimitRequestLine' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "LimitRequestLine",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.2"
+        },
+        {
+            "id": "APACHE-GJB-016",
+            "name": "请求头数量限制",
+            "description": "GJB 5621A-5.5.2 应限制请求头数量",
+            "command": "grep -rE 'LimitRequestFields' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "LimitRequestFields",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.2"
+        },
+        {
+            "id": "APACHE-GJB-017",
+            "name": "请求头大小限制",
+            "description": "GJB 5621A-5.5.2 应限制请求头大小",
+            "command": "grep -rE 'LimitRequestFieldSize' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "LimitRequestFieldSize",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "资源控制",
+            "gjb_ref": "GJB 5621A-5.5.2"
+        },
+        {
+            "id": "APACHE-GJB-018",
+            "name": "错误页面隐藏信息",
+            "description": "GJB 5621A-4.2.3 错误页面不应泄露敏感信息",
+            "command": "grep -rE 'ErrorDocument' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -5",
+            "expected": "ErrorDocument",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "信息泄露",
+            "gjb_ref": "GJB 5621A-4.2.3"
+        },
+        {
+            "id": "APACHE-GJB-019",
+            "name": "CGI脚本限制",
+            "description": "GJB 5621A-4.5.1 应限制CGI脚本执行",
+            "command": "grep -rE 'ScriptAlias|AddHandler.*cgi' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "high",
+            "category": "脚本安全",
+            "gjb_ref": "GJB 5621A-4.5.1"
+        },
+        {
+            "id": "APACHE-GJB-020",
+            "name": "WebDAV禁用",
+            "description": "GJB 5621A-4.5.2 应禁用WebDAV模块",
+            "command": "apachectl -M 2>/dev/null | grep -i dav || echo 'OK'",
+            "expected": "OK",
+            "check_type": "equals",
+            "severity": "medium",
+            "category": "模块安全",
+            "gjb_ref": "GJB 5621A-4.5.2"
+        },
+        {
+            "id": "APACHE-GJB-021",
+            "name": "Server-Status访问控制",
+            "description": "GJB 5621A-4.4.3 server-status应限制访问",
+            "command": "grep -A10 'Location.*server-status' /etc/httpd/ /etc/apache2/**/*.conf 2>/dev/null | grep -v '#' | head -15",
+            "expected": "Require",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.3"
+        },
+        {
+            "id": "APACHE-GJB-022",
+            "name": "Server-Info访问控制",
+            "description": "GJB 5621A-4.4.3 server-info应限制访问或禁用",
+            "command": "grep -A10 'Location.*server-info' /etc/httpd/ /etc/apache2/**/*.conf 2>/dev/null | grep -v '#' | head -15 || echo 'OK'",
+            "expected": "Require",
+            "check_type": "contains",
+            "severity": "medium",
+            "category": "访问控制",
+            "gjb_ref": "GJB 5621A-4.4.3"
+        },
+        {
+            "id": "APACHE-GJB-023",
+            "name": "代理配置安全",
+            "description": "GJB 5621A-4.5.3 代理服务应配置访问控制",
+            "command": "grep -rE 'ProxyRequests|ProxyVia' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'OK'",
+            "expected": "ProxyRequests Off",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "代理安全",
+            "gjb_ref": "GJB 5621A-4.5.3"
+        },
+        {
+            "id": "APACHE-GJB-024",
+            "name": "SSL会话缓存",
+            "description": "GJB 5621A-5.3.4 应配置SSL会话缓存",
+            "command": "grep -rE 'SSLSessionCache' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "SSLSessionCache",
+            "check_type": "contains",
+            "severity": "low",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.4"
+        },
+        {
+            "id": "APACHE-GJB-025",
+            "name": "HSTS配置",
+            "description": "GJB 5621A-5.3.5 应配置HSTS响应头",
+            "command": "grep -rE 'Strict-Transport-Security' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' || echo 'NOT_FOUND'",
+            "expected": "Strict-Transport-Security",
+            "check_type": "contains",
+            "severity": "high",
+            "category": "通信安全",
+            "gjb_ref": "GJB 5621A-5.3.5"
+        }
+    ]
+}

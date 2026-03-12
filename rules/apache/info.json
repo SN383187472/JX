@@ -1,0 +1,88 @@
+{
+    "name": "Apache 信息收集规则",
+    "version": "1.0.0",
+    "description": "Apache HTTP Server 版本和配置信息收集",
+    "compliance": ["信息收集"],
+    "rules": [
+        {
+            "id": "APACHE-INFO-001",
+            "name": "Apache版本信息",
+            "description": "收集Apache版本信息",
+            "command": "httpd -v 2>/dev/null || apache2 -v 2>/dev/null",
+            "check_type": "info",
+            "category": "版本信息"
+        },
+        {
+            "id": "APACHE-INFO-002",
+            "name": "编译参数",
+            "description": "收集Apache编译参数",
+            "command": "httpd -V 2>/dev/null || apache2 -V 2>/dev/null",
+            "check_type": "info",
+            "category": "版本信息"
+        },
+        {
+            "id": "APACHE-INFO-003",
+            "name": "已加载模块",
+            "description": "收集已加载的Apache模块",
+            "command": "apachectl -M 2>/dev/null || apache2ctl -M 2>/dev/null",
+            "check_type": "info",
+            "category": "模块信息"
+        },
+        {
+            "id": "APACHE-INFO-004",
+            "name": "配置文件路径",
+            "description": "收集Apache配置文件路径",
+            "command": "httpd -S 2>/dev/null | head -20 || apache2ctl -S 2>/dev/null | head -20",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "APACHE-INFO-005",
+            "name": "监听端口",
+            "description": "收集Apache监听端口",
+            "command": "netstat -tuln 2>/dev/null | grep -E ':80|:443|:8080' || ss -tuln | grep -E ':80|:443|:8080'",
+            "check_type": "info",
+            "category": "网络配置"
+        },
+        {
+            "id": "APACHE-INFO-006",
+            "name": "虚拟主机配置",
+            "description": "收集虚拟主机配置信息",
+            "command": "grep -rE 'ServerName|DocumentRoot|ServerAlias' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | head -20",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "APACHE-INFO-007",
+            "name": "运行状态",
+            "description": "检查Apache运行状态",
+            "command": "systemctl status httpd 2>/dev/null || systemctl status apache2 2>/dev/null || service httpd status 2>/dev/null",
+            "check_type": "info",
+            "category": "运行状态"
+        },
+        {
+            "id": "APACHE-INFO-008",
+            "name": "进程信息",
+            "description": "收集Apache进程信息",
+            "command": "ps aux | grep -E 'httpd|apache2' | grep -v grep",
+            "check_type": "info",
+            "category": "运行状态"
+        },
+        {
+            "id": "APACHE-INFO-009",
+            "name": "日志文件位置",
+            "description": "收集日志文件位置",
+            "command": "ls -la /var/log/httpd/ /var/log/apache2/ 2>/dev/null",
+            "check_type": "info",
+            "category": "日志信息"
+        },
+        {
+            "id": "APACHE-INFO-010",
+            "name": "SSL证书信息",
+            "description": "收集SSL证书信息",
+            "command": "grep -rE 'SSLCertificateFile' /etc/httpd/ /etc/apache2/ 2>/dev/null | grep -v '#' | while read line; do cert=$(echo $line | awk '{print $2}'); echo \"Certificate: $cert\"; openssl x509 -in $cert -noout -subject -dates 2>/dev/null; done",
+            "check_type": "info",
+            "category": "SSL信息"
+        }
+    ]
+}

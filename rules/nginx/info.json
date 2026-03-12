@@ -1,0 +1,88 @@
+{
+    "name": "Nginx 信息收集规则",
+    "version": "1.0.0",
+    "description": "Nginx 版本和配置信息收集",
+    "compliance": ["信息收集"],
+    "rules": [
+        {
+            "id": "NGINX-INFO-001",
+            "name": "Nginx版本信息",
+            "description": "收集Nginx版本信息",
+            "command": "nginx -v 2>&1",
+            "check_type": "info",
+            "category": "版本信息"
+        },
+        {
+            "id": "NGINX-INFO-002",
+            "name": "编译参数",
+            "description": "收集Nginx编译参数",
+            "command": "nginx -V 2>&1",
+            "check_type": "info",
+            "category": "版本信息"
+        },
+        {
+            "id": "NGINX-INFO-003",
+            "name": "配置测试",
+            "description": "测试Nginx配置是否正确",
+            "command": "nginx -t 2>&1",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "NGINX-INFO-004",
+            "name": "监听端口",
+            "description": "收集Nginx监听端口",
+            "command": "netstat -tuln 2>/dev/null | grep nginx || ss -tuln | grep -E ':80|:443|:8080'",
+            "check_type": "info",
+            "category": "网络配置"
+        },
+        {
+            "id": "NGINX-INFO-005",
+            "name": "运行状态",
+            "description": "检查Nginx运行状态",
+            "command": "systemctl status nginx 2>/dev/null || service nginx status 2>/dev/null",
+            "check_type": "info",
+            "category": "运行状态"
+        },
+        {
+            "id": "NGINX-INFO-006",
+            "name": "进程信息",
+            "description": "收集Nginx进程信息",
+            "command": "ps aux | grep nginx | grep -v grep",
+            "check_type": "info",
+            "category": "运行状态"
+        },
+        {
+            "id": "NGINX-INFO-007",
+            "name": "日志文件位置",
+            "description": "收集日志文件位置",
+            "command": "ls -la /var/log/nginx/ 2>/dev/null",
+            "check_type": "info",
+            "category": "日志信息"
+        },
+        {
+            "id": "NGINX-INFO-008",
+            "name": "虚拟主机配置",
+            "description": "收集server块配置",
+            "command": "grep -rE 'server_name|listen|root' /etc/nginx/ 2>/dev/null | grep -v '#' | head -30",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "NGINX-INFO-009",
+            "name": "上游服务器配置",
+            "description": "收集upstream配置",
+            "command": "grep -rE 'upstream|server.*:.*;' /etc/nginx/ 2>/dev/null | grep -v '#' | grep -v 'server_name' | head -20",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "NGINX-INFO-010",
+            "name": "SSL证书信息",
+            "description": "收集SSL证书信息",
+            "command": "grep -rE 'ssl_certificate ' /etc/nginx/ 2>/dev/null | grep -v '#' | while read line; do cert=$(echo $line | awk '{print $2}' | tr -d ';'); echo \"Certificate: $cert\"; openssl x509 -in $cert -noout -subject -dates 2>/dev/null; done",
+            "check_type": "info",
+            "category": "SSL信息"
+        }
+    ]
+}

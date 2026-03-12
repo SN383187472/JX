@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>目标管理 - {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .form-section-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .hint-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+        .btn-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .checkbox-col {
+            width: 30px;
+            text-align: center;
+        }
+        .action-col {
+            width: 120px;
+        }
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .select-all-checkbox {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>🔐 基线核查</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/dashboard">📊 控制面板</a></li>
+                <li><a href="/targets" class="active">🖥️ 目标管理</a></li>
+                <li><a href="/scan">🔍 安全扫描</a></li>
+                <li><a href="/results">📋 扫描结果</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <header>
+                <h1>目标管理</h1>
+                <button onclick="showAddForm()" class="btn-primary">➕ 添加目标</button>
+            </header>
+            
+            <!-- 添加/编辑表单 -->
+            <div id="addForm" class="form-panel" style="display: none;">
+                <h2 id="formTitle">添加检测目标</h2>
+                <form id="targetForm">
+                    <input type="hidden" id="edit_id" value="">
+                    
+                    <!-- 基本信息 -->
+                    <div class="form-section">
+                        <div class="form-section-title">📌 基本信息</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="required">目标名称</label>
+                                <input type="text" id="name" name="name" placeholder="例: 生产服务器1" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">目标类型</label>
+                                <select id="target_type" name="target_type" required>
+                                    <!-- 动态生成 -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="required">主机地址</label>
+                                <input type="text" id="host" name="host" placeholder="IP地址或域名" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 动态连接配置区域 -->
+                    <div class="form-section" id="connectionSection">
+                        <div class="form-section-title" id="connectionTitle">🔗 连接配置</div>
+                        <div id="dynamicFields"></div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" onclick="testConnection()" class="btn-secondary" id="testBtn">🔌 测试连接</button>
+                        <button type="submit" class="btn-primary" id="submitBtn">保 存</button>
+                        <button type="button" onclick="hideAddForm()" class="btn-secondary">取 消</button>
+                    </div>
+                    <div id="testResult" style="margin-top:10px;display:none;"></div>
+                </form>
+            </div>
+            
+            <!-- 工具栏 -->
+            <div class="btn-toolbar">
+                <button onclick="batchDelete()" class="btn-danger" id="batchDeleteBtn" disabled>🗑️ 批量删除</button>
+                <span id="selectedCount" style="color:#666;line-height:32px;"></span>
+            </div>
+            
+            <!-- 目标列表 -->
+            <div class="data-panel">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col"><input type="checkbox" id="selectAll" class="select-all-checkbox" onclick="toggleSelectAll()"></th>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>类型</th>
+                            <th>地址</th>
+                            <th>端口</th>
+                            <th>用户名</th>
+                            <th class="action-col">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="targetTable">
+                        <tr><td colspan="8">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // ==================== 配置驱动设计 ====================
+        const TARGET_TYPES = {
+            kylin: {
+                name: '麒麟操作系统',
+                category: 'Linux系统',
+                connectionType: 'ssh',
+                connectionTitle: 'SSH连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: '默认: 22' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: '建议使用root或有sudo权限的用户' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' }
+                ]
+            },
+            centos: {
+                name: 'CentOS',
+                category: 'Linux系统',
+                connectionType: 'ssh',
+                connectionTitle: 'SSH连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: '默认: 22' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: '建议使用root或有sudo权限的用户' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' }
+                ]
+            },
+            ubuntu: {
+                name: 'Ubuntu',
+                category: 'Linux系统',
+                connectionType: 'ssh',
+                connectionTitle: 'SSH连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: '默认: 22' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: '建议使用root或有sudo权限的用户' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' }
+                ]
+            },
+            windows7: {
+                name: 'Windows 7',
+                category: 'Windows系统',
+                connectionType: 'winrm',
+                connectionTitle: 'WinRM连接配置',
+                fields: [
+                    { id: 'port', label: 'WinRM端口', type: 'number', default: 5985, hint: 'HTTP: 5985, HTTPS: 5986' },
+                    { id: 'scheme', label: '连接方式', type: 'select', options: [
+                        { value: 'http', label: 'HTTP' },
+                        { value: 'https', label: 'HTTPS (推荐)' }
+                    ]},
+                    { id: 'username', label: '管理员用户名', type: 'text', default: 'Administrator', hint: '需要管理员权限' },
+                    { id: 'password', label: '管理员密码', type: 'password', hint: 'Windows登录密码' }
+                ],
+                notice: '注意: 目标Windows需启用WinRM服务。启用命令: winrm quickconfig'
+            },
+            windows10: {
+                name: 'Windows 10',
+                category: 'Windows系统',
+                connectionType: 'winrm',
+                connectionTitle: 'WinRM连接配置',
+                fields: [
+                    { id: 'port', label: 'WinRM端口', type: 'number', default: 5985, hint: 'HTTP: 5985, HTTPS: 5986' },
+                    { id: 'scheme', label: '连接方式', type: 'select', options: [
+                        { value: 'http', label: 'HTTP' },
+                        { value: 'https', label: 'HTTPS (推荐)' }
+                    ]},
+                    { id: 'username', label: '管理员用户名', type: 'text', default: 'Administrator', hint: '需要管理员权限' },
+                    { id: 'password', label: '管理员密码', type: 'password', hint: 'Windows登录密码' }
+                ],
+                notice: '注意: 目标Windows需启用WinRM服务。启用命令: winrm quickconfig'
+            },
+            windows2012: {
+                name: 'Windows Server 2012',
+                category: 'Windows系统',
+                connectionType: 'winrm',
+                connectionTitle: 'WinRM连接配置',
+                fields: [
+                    { id: 'port', label: 'WinRM端口', type: 'number', default: 5985, hint: 'HTTP: 5985, HTTPS: 5986' },
+                    { id: 'scheme', label: '连接方式', type: 'select', options: [
+                        { value: 'http', label: 'HTTP' },
+                        { value: 'https', label: 'HTTPS (推荐)' }
+                    ]},
+                    { id: 'username', label: '管理员用户名', type: 'text', default: 'Administrator', hint: '需要管理员权限' },
+                    { id: 'password', label: '管理员密码', type: 'password', hint: 'Windows登录密码' }
+                ],
+                notice: '注意: 目标Windows需启用WinRM服务。启用命令: winrm quickconfig'
+            },
+            dameng: {
+                name: '达梦数据库',
+                category: '数据库',
+                connectionType: 'database',
+                connectionTitle: '数据库连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: 'SSH端口，用于远程执行命令' },
+                    { id: 'db_port', label: '数据库端口', type: 'number', default: 5236, hint: '达梦默认: 5236' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: 'SSH登录用户名' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' },
+                    { id: 'db_username', label: '数据库用户名', type: 'text', default: 'SYSDBA', hint: '达梦管理员用户' },
+                    { id: 'db_password', label: '数据库密码', type: 'password', hint: '数据库登录密码' },
+                    { id: 'db_name', label: '数据库实例名', type: 'text', default: 'DAMENG', hint: '可选' }
+                ]
+            },
+            mysql: {
+                name: 'MySQL数据库',
+                category: '数据库',
+                connectionType: 'database',
+                connectionTitle: '数据库连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: 'SSH端口，用于远程执行命令' },
+                    { id: 'db_port', label: '数据库端口', type: 'number', default: 3306, hint: 'MySQL默认: 3306' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: 'SSH登录用户名' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' },
+                    { id: 'db_username', label: '数据库用户名', type: 'text', default: 'root', hint: 'MySQL用户' },
+                    { id: 'db_password', label: '数据库密码', type: 'password', hint: '数据库登录密码' },
+                    { id: 'db_name', label: '数据库名', type: 'text', default: 'mysql', hint: '可选' }
+                ]
+            },
+            oracle: {
+                name: 'Oracle数据库',
+                category: '数据库',
+                connectionType: 'database',
+                connectionTitle: '数据库连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: 'SSH端口，用于远程执行命令' },
+                    { id: 'db_port', label: '数据库端口', type: 'number', default: 1521, hint: 'Oracle默认: 1521' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'oracle', hint: 'SSH登录用户名' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' },
+                    { id: 'db_username', label: '数据库用户名', type: 'text', default: 'system', hint: 'Oracle用户' },
+                    { id: 'db_password', label: '数据库密码', type: 'password', hint: '数据库登录密码' },
+                    { id: 'db_name', label: 'Oracle SID', type: 'text', default: 'ORCL', hint: '可选' }
+                ]
+            },
+            apache: {
+                name: 'Apache HTTP Server',
+                category: '中间件',
+                connectionType: 'ssh',
+                connectionTitle: 'SSH连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: '默认: 22' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: '建议使用root或有sudo权限的用户' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' }
+                ]
+            },
+            nginx: {
+                name: 'Nginx',
+                category: '中间件',
+                connectionType: 'ssh',
+                connectionTitle: 'SSH连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: '默认: 22' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: '建议使用root或有sudo权限的用户' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' }
+                ]
+            },
+            redis: {
+                name: 'Redis',
+                category: '中间件',
+                connectionType: 'ssh',
+                connectionTitle: 'SSH连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: '默认: 22' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: '建议使用root或有sudo权限的用户' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' }
+                ]
+            },
+            tomcat: {
+                name: 'Apache Tomcat',
+                category: '中间件',
+                connectionType: 'ssh',
+                connectionTitle: 'SSH连接配置',
+                fields: [
+                    { id: 'port', label: 'SSH端口', type: 'number', default: 22, hint: '默认: 22' },
+                    { id: 'username', label: 'SSH用户名', type: 'text', default: 'root', hint: '建议使用root或有sudo权限的用户' },
+                    { id: 'password', label: 'SSH密码', type: 'password', hint: 'SSH登录密码' }
+                ]
+            }
+        };
+        
+        let currentTypeConfig = null;
+        let selectedIds = new Set();
+        let allTargets = [];
+        
+        // ==================== 初始化 ====================
+        
+        function initTargetTypeSelect() {
+            const select = document.getElementById('target_type');
+            const categories = {};
+            
+            Object.entries(TARGET_TYPES).forEach(([key, config]) => {
+                if (!categories[config.category]) {
+                    categories[config.category] = [];
+                }
+                categories[config.category].push({ key, name: config.name });
+            });
+            
+            select.innerHTML = '<option value="">-- 请选择 --</option>';
+            Object.entries(categories).forEach(([category, types]) => {
+                const group = document.createElement('optgroup');
+                group.label = category;
+                types.forEach(t => {
+                    const option = document.createElement('option');
+                    option.value = t.key;
+                    option.textContent = t.name;
+                    group.appendChild(option);
+                });
+                select.appendChild(group);
+            });
+        }
+        
+        // ==================== 动态表单生成 ====================
+        
+        function updateDynamicFields(targetType, data = null) {
+            const container = document.getElementById('dynamicFields');
+            const titleEl = document.getElementById('connectionTitle');
+            
+            if (!targetType || !TARGET_TYPES[targetType]) {
+                container.innerHTML = '<p style="color:#6c757d;">请先选择目标类型</p>';
+                currentTypeConfig = null;
+                return;
+            }
+            
+            currentTypeConfig = TARGET_TYPES[targetType];
+            titleEl.textContent = '🔗 ' + currentTypeConfig.connectionTitle;
+            
+            let html = '';
+            const fields = currentTypeConfig.fields;
+            
+            for (let i = 0; i < fields.length; i += 2) {
+                html += '<div class="form-row">';
+                html += generateFieldHtml(fields[i], data);
+                if (i + 1 < fields.length) {
+                    html += generateFieldHtml(fields[i + 1], data);
+                } else {
+                    html += '<div class="form-group"></div>';
+                }
+                html += '</div>';
+            }
+            
+            if (currentTypeConfig.notice) {
+                html += `<div class="hint-text" style="background:#fff3cd;padding:8px;border-radius:4px;margin-top:10px;">${currentTypeConfig.notice}</div>`;
+            }
+            
+            container.innerHTML = html;
+            
+            // 设置值（编辑模式或默认值）
+            fields.forEach(field => {
+                const el = document.getElementById('field_' + field.id);
+                if (el) {
+                    if (data && data[field.id] !== undefined) {
+                        el.value = data[field.id];
+                    } else if (field.default !== undefined) {
+                        el.value = field.default;
+                    }
+                }
+            });
+        }
+        
+        function generateFieldHtml(field, data = null) {
+            const required = field.type !== 'select' ? 'required' : '';
+            let html = `<div class="form-group"><label class="required">${field.label}</label>`;
+            
+            if (field.type === 'select') {
+                html += `<select id="field_${field.id}">`;
+                field.options.forEach(opt => {
+                    html += `<option value="${opt.value}">${opt.label}</option>`;
+                });
+                html += '</select>';
+            } else {
+                html += `<input type="${field.type}" id="field_${field.id}" ${required}>`;
+            }
+            
+            if (field.hint) {
+                html += `<div class="hint-text">${field.hint}</div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // ==================== 表单提交 ====================
+        
+        function collectFormData() {
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('host', document.getElementById('host').value);
+            formData.append('target_type', document.getElementById('target_type').value);
+            
+            if (currentTypeConfig) {
+                currentTypeConfig.fields.forEach(field => {
+                    const el = document.getElementById('field_' + field.id);
+                    if (el) {
+                        formData.append(field.id, el.value);
+                    }
+                });
+            }
+            
+            return formData;
+        }
+        
+        // ==================== 页面操作 ====================
+        
+        function showAddForm() {
+            document.getElementById('addForm').style.display = 'block';
+            document.getElementById('formTitle').textContent = '添加检测目标';
+            document.getElementById('submitBtn').textContent = '保 存';
+            document.getElementById('edit_id').value = '';
+            document.getElementById('targetForm').reset();
+            initTargetTypeSelect();
+            updateDynamicFields('');
+        }
+        
+        function hideAddForm() {
+            document.getElementById('addForm').style.display = 'none';
+        }
+        
+        // 编辑目标
+        async function editTarget(id) {
+            const target = allTargets.find(t => t.id === id);
+            if (!target) return;
+            
+            document.getElementById('addForm').style.display = 'block';
+            document.getElementById('formTitle').textContent = '编辑检测目标';
+            document.getElementById('submitBtn').textContent = '更 新';
+            document.getElementById('edit_id').value = id;
+            
+            // 初始化下拉框
+            initTargetTypeSelect();
+            document.getElementById('target_type').value = target.target_type;
+            
+            // 填充基本信息
+            document.getElementById('name').value = target.name;
+            document.getElementById('host').value = target.host;
+            
+            // 生成动态字段并填充值
+            updateDynamicFields(target.target_type, target);
+        }
+        
+        // 更新选择状态
+        function updateSelection() {
+            const count = selectedIds.size;
+            document.getElementById('selectedCount').textContent = count > 0 ? `已选择 ${count} 项` : '';
+            document.getElementById('batchDeleteBtn').disabled = count === 0;
+            document.getElementById('selectAll').checked = count === allTargets.length && allTargets.length > 0;
+        }
+        
+        function toggleSelectAll() {
+            const checked = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.target-checkbox').forEach(cb => {
+                cb.checked = checked;
+                const id = parseInt(cb.value);
+                if (checked) {
+                    selectedIds.add(id);
+                } else {
+                    selectedIds.delete(id);
+                }
+            });
+            updateSelection();
+        }
+        
+        function toggleSelect(id) {
+            if (selectedIds.has(id)) {
+                selectedIds.delete(id);
+            } else {
+                selectedIds.add(id);
+            }
+            updateSelection();
+        }
+        
+        // 批量删除
+        async function batchDelete() {
+            if (selectedIds.size === 0) return;
+            if (!confirm(`确定要删除选中的 ${selectedIds.size} 个目标吗？`)) return;
+            
+            try {
+                let success = 0;
+                let failed = 0;
+                
+                for (const id of selectedIds) {
+                    const response = await fetch(`/api/targets/${id}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (result.success) {
+                        success++;
+                    } else {
+                        failed++;
+                    }
+                }
+                
+                selectedIds.clear();
+                loadTargets();
+                
+                if (failed > 0) {
+                    alert(`删除完成: 成功 ${success} 个, 失败 ${failed} 个`);
+                } else {
+                    alert(`成功删除 ${success} 个目标`);
+                }
+            } catch (error) {
+                alert('批量删除失败: ' + error.message);
+            }
+        }
+        
+        async function loadTargets() {
+            try {
+                const response = await fetch('/api/targets');
+                const result = await response.json();
+                
+                allTargets = result.data || [];
+                selectedIds.clear();
+                updateSelection();
+                
+                const tbody = document.getElementById('targetTable');
+                
+                if (allTargets.length > 0) {
+                    tbody.innerHTML = allTargets.map(t => {
+                        const typeName = TARGET_TYPES[t.target_type]?.name || t.target_type;
+                        return `
+                            <tr>
+                                <td class="checkbox-col">
+                                    <input type="checkbox" class="target-checkbox" value="${t.id}" 
+                                           ${selectedIds.has(t.id) ? 'checked' : ''} 
+                                           onchange="toggleSelect(${t.id})">
+                                </td>
+                                <td>${t.id}</td>
+                                <td>${t.name}</td>
+                                <td><span class="badge">${typeName}</span></td>
+                                <td>${t.host}</td>
+                                <td>${t.port}</td>
+                                <td>${t.username}</td>
+                                <td>
+                                    <button onclick="editTarget(${t.id})" class="btn-primary btn-sm">编辑</button>
+                                    <button onclick="deleteTarget(${t.id})" class="btn-danger btn-sm">删除</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="8">暂无数据</td></tr>';
+                }
+            } catch (error) {
+                console.error('加载目标失败:', error);
+            }
+        }
+        
+        async function deleteTarget(id) {
+            if (!confirm('确定要删除此目标吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/targets/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    alert('删除成功');
+                    loadTargets();
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+        
+        // ==================== 测试连接 ====================
+        
+        async function testConnection() {
+            const formData = collectFormData();
+            const resultDiv = document.getElementById('testResult');
+            const testBtn = document.getElementById('testBtn');
+            
+            // 验证必填字段
+            const host = formData.get('host');
+            const targetType = formData.get('target_type');
+            const port = formData.get('port');
+            const username = formData.get('username');
+            const password = formData.get('password');
+            
+            if (!host || !targetType || !port || !username || !password) {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<div style="color:#dc3545;padding:10px;background:#f8d7da;border-radius:4px;">❌ 请填写完整的连接信息</div>';
+                return;
+            }
+            
+            // 显示测试中状态
+            testBtn.disabled = true;
+            testBtn.textContent = '测试中...';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div style="color:#0c5460;padding:10px;background:#d1ecf1;border-radius:4px;">⏳ 正在测试连接，请稍候...</div>';
+            
+            try {
+                const response = await fetch('/api/test-connection', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = '<div style="color:#155724;padding:10px;background:#d4edda;border-radius:4px;">✅ 连接成功! ' + (result.message || '') + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div style="color:#721c24;padding:10px;background:#f8d7da;border-radius:4px;">❌ 连接失败: ' + result.message + '</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<div style="color:#721c24;padding:10px;background:#f8d7da;border-radius:4px;">❌ 请求失败: ' + error.message + '</div>';
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🔌 测试连接';
+            }
+        }
+        
+        // ==================== 事件绑定 ====================
+        
+        document.getElementById('target_type').addEventListener('change', (e) => {
+            updateDynamicFields(e.target.value);
+        });
+        
+        document.getElementById('targetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const editId = document.getElementById('edit_id').value;
+            const formData = collectFormData();
+            
+            try {
+                let response;
+                if (editId) {
+                    // 更新模式
+                    response = await fetch(`/api/targets/${editId}`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+                } else {
+                    // 新建模式
+                    response = await fetch('/api/targets', {
+                        method: 'POST',
+                        body: formData
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(editId ? '更新成功' : '添加成功');
+                    hideAddForm();
+                    loadTargets();
+                } else {
+                    alert((editId ? '更新' : '添加') + '失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+        
+        // ==================== 页面加载 ====================
+        
+        loadTargets();
+    </script>
+</body>
+</html>

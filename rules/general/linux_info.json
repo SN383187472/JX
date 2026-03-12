@@ -1,0 +1,283 @@
+{
+  "name": "Linux系统信息采集规则库",
+  "version": "1.0.0",
+  "description": "通用规则库 - 采集Linux目标对象的系统信息、硬件信息、网络配置等",
+  "compliance": ["通用信息采集"],
+  "rules": [
+    {
+      "id": "INFO-LINUX-001",
+      "name": "系统版本信息",
+      "description": "采集操作系统版本信息",
+      "command": "cat /etc/os-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null || cat /etc/debian_version 2>/dev/null || uname -a",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-002",
+      "name": "内核版本",
+      "description": "采集内核版本信息",
+      "command": "uname -r",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-003",
+      "name": "主机名",
+      "description": "采集主机名",
+      "command": "hostname",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-004",
+      "name": "系统运行时间",
+      "description": "采集系统运行时间",
+      "command": "uptime",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-005",
+      "name": "CPU信息",
+      "description": "采集CPU型号和核心数",
+      "command": "cat /proc/cpuinfo | grep 'model name' | head -1 && cat /proc/cpuinfo | grep 'processor' | wc -l",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "硬件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-006",
+      "name": "内存信息",
+      "description": "采集内存总量和使用情况",
+      "command": "free -h",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "硬件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-007",
+      "name": "磁盘信息",
+      "description": "采集磁盘分区和使用情况",
+      "command": "df -h",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "硬件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-008",
+      "name": "磁盘设备列表",
+      "description": "采集磁盘设备列表",
+      "command": "lsblk 2>/dev/null || fdisk -l 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "硬件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-009",
+      "name": "网络接口信息",
+      "description": "采集网络接口配置",
+      "command": "ip addr 2>/dev/null || ifconfig",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-010",
+      "name": "IP地址信息",
+      "description": "采集IP地址",
+      "command": "hostname -I 2>/dev/null || ip addr | grep 'inet ' | awk '{print $2}'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-011",
+      "name": "路由表",
+      "description": "采集路由表信息",
+      "command": "ip route 2>/dev/null || route -n",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-012",
+      "name": "DNS配置",
+      "description": "采集DNS配置",
+      "command": "cat /etc/resolv.conf",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-013",
+      "name": "hosts文件",
+      "description": "采集hosts文件配置",
+      "command": "cat /etc/hosts",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-014",
+      "name": "网络端口监听",
+      "description": "采集网络端口监听情况",
+      "command": "netstat -tuln 2>/dev/null || ss -tuln",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-015",
+      "name": "网络连接状态",
+      "description": "采集网络连接状态",
+      "command": "netstat -an 2>/dev/null | head -50 || ss -an | head -50",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-016",
+      "name": "用户列表",
+      "description": "采集系统用户列表",
+      "command": "cat /etc/passwd",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-017",
+      "name": "用户组列表",
+      "description": "采集用户组列表",
+      "command": "cat /etc/group",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-018",
+      "name": "sudo配置",
+      "description": "采集sudo配置",
+      "command": "cat /etc/sudoers 2>/dev/null || echo 'Permission denied'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-019",
+      "name": "运行的服务",
+      "description": "采集正在运行的服务",
+      "command": "systemctl list-units --type=service --state=running 2>/dev/null || service --status-all 2>/dev/null | grep running",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "服务信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-020",
+      "name": "已安装软件包",
+      "description": "采集已安装软件包列表",
+      "command": "dpkg -l 2>/dev/null | head -100 || rpm -qa 2>/dev/null | head -100",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "软件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-021",
+      "name": "定时任务",
+      "description": "采集系统定时任务",
+      "command": "ls -la /etc/cron.* 2>/dev/null && cat /etc/crontab 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "计划任务",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-022",
+      "name": "SSH配置",
+      "description": "采集SSH服务配置",
+      "command": "cat /etc/ssh/sshd_config 2>/dev/null | grep -v '^#' | grep -v '^$'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "服务配置",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-023",
+      "name": "防火墙规则",
+      "description": "采集防火墙规则",
+      "command": "iptables -L -n 2>/dev/null || firewall-cmd --list-all 2>/dev/null",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "安全配置",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-024",
+      "name": "SELinux状态",
+      "description": "采集SELinux状态",
+      "command": "getenforce 2>/dev/null || sestatus 2>/dev/null || echo 'SELinux not installed'",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "安全配置",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-LINUX-025",
+      "name": "环境变量",
+      "description": "采集系统环境变量",
+      "command": "env | head -30",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统配置",
+      "compliance": "信息采集"
+    }
+  ]
+}

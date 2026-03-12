@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全扫描 - {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>🔐 基线核查</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/dashboard">📊 控制面板</a></li>
+                <li><a href="/targets">🖥️ 目标管理</a></li>
+                <li><a href="/scan" class="active">🔍 安全扫描</a></li>
+                <li><a href="/results">📋 扫描结果</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <header>
+                <h1>安全扫描</h1>
+            </header>
+            
+            <div class="scan-panel">
+                <form id="scanForm">
+                    <div class="form-group">
+                        <label>选择检测目标</label>
+                        <select id="target_id" name="target_id" required>
+                            <option value="">-- 请选择 --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>选择规则集</label>
+                        <select id="rule_file" name="rule_file" required>
+                            <option value="">-- 请先选择目标 --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>规则预览</label>
+                        <div id="rulePreview" class="rule-preview">
+                            <p>选择规则后显示规则列表</p>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary btn-large">🚀 开始扫描</button>
+                </form>
+                
+                <!-- 扫描结果 -->
+                <div id="scanResult" class="scan-result" style="display: none;">
+                    <h2>扫描结果</h2>
+                    <div class="result-summary">
+                        <span class="stat">总计: <strong id="totalRules">0</strong></span>
+                        <span class="stat success">通过: <strong id="passedRules">0</strong></span>
+                        <span class="stat danger">不符合: <strong id="failedRules">0</strong></span>
+                    </div>
+                    <a id="viewDetail" href="#" class="btn-secondary">查看详情</a>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        let targetType = '';
+        
+        // 目标类型映射
+        const typeNames = {
+            'kylin': '麒麟系统',
+            'dameng': '达梦数据库',
+            'mysql': 'MySQL数据库',
+            'oracle': 'Oracle数据库',
+            'windows7': 'Windows 7',
+            'windows10': 'Windows 10',
+            'windows2012': 'Windows Server 2012',
+            'centos': 'CentOS',
+            'ubuntu': 'Ubuntu',
+            'gjb5621a': 'GJB 5621A',
+            'general': '通用信息采集',
+            'gbt36960': 'GB/T 36960-2018'
+        };
+        
+        // 加载目标列表
+        async function loadTargets() {
+            try {
+                const response = await fetch('/api/targets');
+                const result = await response.json();
+                
+                const select = document.getElementById('target_id');
+                select.innerHTML = '<option value="">-- 请选择 --</option>';
+                
+                result.data?.forEach(t => {
+                    const typeName = typeNames[t.target_type] || t.target_type;
+                    select.innerHTML += `<option value="${t.id}" data-type="${t.target_type}">${t.name} (${typeName})</option>`;
+                });
+            } catch (error) {
+                console.error('加载目标失败:', error);
+            }
+        }
+        
+        // 目标选择变化时加载规则
+        document.getElementById('target_id').addEventListener('change', async (e) => {
+            const option = e.target.selectedOptions[0];
+            targetType = option?.dataset?.type || '';
+            
+            if (!targetType) {
+                document.getElementById('rule_file').innerHTML = '<option value="">-- 请先选择目标 --</option>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/rules/${targetType}`);
+                const result = await response.json();
+                
+                const select = document.getElementById('rule_file');
+                select.innerHTML = '<option value="">-- 请选择 --</option>';
+                
+                if (result.data && result.data.length > 0) {
+                    // 按分类分组
+                    const categories = {};
+                    result.data.forEach(r => {
+                        const cat = r.category || '其他';
+                        if (!categories[cat]) categories[cat] = [];
+                        categories[cat].push(r);
+                    });
+                    
+                    // 分类顺序
+                    const order = ['专属规则', '通用规则', '国标规则', '其他'];
+                    order.forEach(cat => {
+                        if (categories[cat] && categories[cat].length > 0) {
+                            const group = document.createElement('optgroup');
+                            group.label = cat;
+                            categories[cat].forEach(r => {
+                                const opt = document.createElement('option');
+                                opt.value = r.filename;
+                                opt.textContent = `${r.name} (${r.rule_count}条)`;
+                                group.appendChild(opt);
+                            });
+                            select.appendChild(group);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('加载规则失败:', error);
+            }
+        });
+        
+        // 执行扫描
+        document.getElementById('scanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const resultDiv = document.getElementById('scanResult');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p>⏳ 扫描中，请稍候...</p>';
+            
+            try {
+                const response = await fetch('/api/scan', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h2>✅ 扫描完成</h2>
+                        <div class="result-summary">
+                            <span class="stat">总计: <strong>${result.summary.total}</strong></span>
+                            <span class="stat success">通过: <strong>${result.summary.passed}</strong></span>
+                            <span class="stat danger">不符合: <strong>${result.summary.failed}</strong></span>
+                        </div>
+                        <a href="/results" class="btn-secondary">查看详情</a>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ 扫描失败: ${result.message}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ 请求失败: ${error.message}</p>`;
+            }
+        });
+        
+        loadTargets();
+    </script>
+</body>
+</html>

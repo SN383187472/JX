@@ -1,0 +1,283 @@
+{
+  "name": "Windows系统信息采集规则库",
+  "version": "1.0.0",
+  "description": "通用规则库 - 采集Windows目标对象的系统信息、硬件信息、网络配置等",
+  "compliance": ["通用信息采集"],
+  "rules": [
+    {
+      "id": "INFO-WIN-001",
+      "name": "系统版本信息",
+      "description": "采集Windows操作系统版本信息",
+      "command": "systeminfo | findstr /B /C:\"OS\"",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-002",
+      "name": "主机名",
+      "description": "采集主机名",
+      "command": "hostname",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-003",
+      "name": "系统运行时间",
+      "description": "采集系统运行时间",
+      "command": "systeminfo | findstr \"System Boot Time\"",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-004",
+      "name": "CPU信息",
+      "description": "采集CPU信息",
+      "command": "wmic cpu get name,numberOfCores,numberOfLogicalProcessors",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "硬件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-005",
+      "name": "内存信息",
+      "description": "采集内存信息",
+      "command": "wmic computersystem get totalphysicalmemory",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "硬件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-006",
+      "name": "磁盘信息",
+      "description": "采集磁盘分区信息",
+      "command": "wmic logicaldisk get size,freespace,caption",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "硬件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-007",
+      "name": "网络接口配置",
+      "description": "采集网络接口配置",
+      "command": "ipconfig /all",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-008",
+      "name": "网络端口监听",
+      "description": "采集网络端口监听情况",
+      "command": "netstat -ano | findstr LISTENING",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-009",
+      "name": "网络连接状态",
+      "description": "采集网络连接状态",
+      "command": "netstat -ano | findstr ESTABLISHED",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-010",
+      "name": "ARP缓存",
+      "description": "采集ARP缓存表",
+      "command": "arp -a",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-011",
+      "name": "路由表",
+      "description": "采集路由表",
+      "command": "route print",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-012",
+      "name": "DNS缓存",
+      "description": "采集DNS缓存",
+      "command": "ipconfig /displaydns",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "网络信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-013",
+      "name": "用户列表",
+      "description": "采集系统用户列表",
+      "command": "net user",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-014",
+      "name": "管理员组",
+      "description": "采集管理员组成员",
+      "command": "net localgroup administrators",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-015",
+      "name": "用户组列表",
+      "description": "采集用户组列表",
+      "command": "net localgroup",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "账户信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-016",
+      "name": "运行的服务",
+      "description": "采集正在运行的服务",
+      "command": "sc query type= service state= running",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "服务信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-017",
+      "name": "已安装软件",
+      "description": "采集已安装软件列表",
+      "command": "wmic product get name,version",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "软件信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-018",
+      "name": "启动项",
+      "description": "采集系统启动项",
+      "command": "wmic startup get caption,command",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "启动配置",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-019",
+      "name": "计划任务",
+      "description": "采集计划任务列表",
+      "command": "schtasks /query /fo LIST /v",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "计划任务",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-020",
+      "name": "防火墙状态",
+      "description": "采集防火墙状态",
+      "command": "netsh advfirewall show allprofiles state",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "安全配置",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-021",
+      "name": "防火墙规则",
+      "description": "采集防火墙规则",
+      "command": "netsh advfirewall firewall show rule name=all",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "安全配置",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-022",
+      "name": "共享资源",
+      "description": "采集共享资源列表",
+      "command": "net share",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "文件共享",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-023",
+      "name": "补丁列表",
+      "description": "采集已安装补丁列表",
+      "command": "wmic qfe list brief",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "补丁信息",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-024",
+      "name": "环境变量",
+      "description": "采集系统环境变量",
+      "command": "set",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "系统配置",
+      "compliance": "信息采集"
+    },
+    {
+      "id": "INFO-WIN-025",
+      "name": "域信息",
+      "description": "采集域信息",
+      "command": "systeminfo | findstr /B /C:\"Domain\"",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "info",
+      "category": "域信息",
+      "compliance": "信息采集"
+    }
+  ]
+}

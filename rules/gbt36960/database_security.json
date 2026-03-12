@@ -1,0 +1,228 @@
+{
+  "name": "GB/T 36960-2018 数据库安全技术要求",
+  "version": "1.0.0",
+  "description": "基于GB/T 36960-2018《信息安全技术 数据库安全技术要求》的数据库安全基线检查规则",
+  "compliance": ["GB/T 36960-2018"],
+  "rules": [
+    {
+      "id": "GBT36960-001",
+      "name": "数据库版本检查",
+      "description": "检查数据库版本是否为最新稳定版本",
+      "command": "SELECT VERSION();",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "版本管理",
+      "compliance": "GB/T 36960-2018-数据库软件安全"
+    },
+    {
+      "id": "GBT36960-002",
+      "name": "默认账户检查",
+      "description": "检查是否存在未修改的默认账户密码",
+      "command": "SELECT user,host FROM mysql.user WHERE user IN ('root','admin','test','guest');",
+      "expected": "",
+      "check_type": "not_contains",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "GB/T 36960-2018-身份鉴别"
+    },
+    {
+      "id": "GBT36960-003",
+      "name": "空密码账户检查",
+      "description": "检查是否存在空密码账户",
+      "command": "SELECT user,host FROM mysql.user WHERE authentication_string='' OR password IS NULL;",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "账户安全",
+      "compliance": "GB/T 36960-2018-身份鉴别"
+    },
+    {
+      "id": "GBT36960-004",
+      "name": "密码复杂度策略检查",
+      "description": "检查是否配置密码复杂度策略",
+      "command": "SHOW VARIABLES LIKE 'validate_password%';",
+      "expected": "validate_password",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "GB/T 36960-2018-身份鉴别"
+    },
+    {
+      "id": "GBT36960-005",
+      "name": "密码有效期检查",
+      "description": "检查是否配置密码有效期策略",
+      "command": "SHOW VARIABLES LIKE 'default_password_lifetime';",
+      "expected": "90",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "GB/T 36960-2018-身份鉴别"
+    },
+    {
+      "id": "GBT36960-006",
+      "name": "登录失败锁定策略检查",
+      "description": "检查是否配置登录失败锁定策略",
+      "command": "SHOW VARIABLES LIKE '%connection_control%';",
+      "expected": "connection_control",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "身份鉴别",
+      "compliance": "GB/T 36960-2018-身份鉴别"
+    },
+    {
+      "id": "GBT36960-007",
+      "name": "管理员权限账户检查",
+      "description": "检查具有管理员权限的账户数量",
+      "command": "SELECT user,host FROM mysql.user WHERE Super_priv='Y' OR Grant_priv='Y';",
+      "expected": "",
+      "check_type": "not_empty",
+      "severity": "medium",
+      "category": "访问控制",
+      "compliance": "GB/T 36960-2018-访问控制"
+    },
+    {
+      "id": "GBT36960-008",
+      "name": "匿名用户检查",
+      "description": "检查是否存在匿名用户",
+      "command": "SELECT user,host FROM mysql.user WHERE user='';",
+      "expected": "",
+      "check_type": "equals",
+      "severity": "high",
+      "category": "访问控制",
+      "compliance": "GB/T 36960-2018-访问控制"
+    },
+    {
+      "id": "GBT36960-009",
+      "name": "审计日志开关检查",
+      "description": "检查是否开启审计日志功能",
+      "command": "SHOW VARIABLES LIKE 'general_log';",
+      "expected": "ON",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "安全审计",
+      "compliance": "GB/T 36960-2018-安全审计"
+    },
+    {
+      "id": "GBT36960-010",
+      "name": "审计日志存储位置检查",
+      "description": "检查审计日志存储位置配置",
+      "command": "SHOW VARIABLES LIKE 'general_log_file';",
+      "expected": ".log",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "GB/T 36960-2018-安全审计"
+    },
+    {
+      "id": "GBT36960-011",
+      "name": "慢查询日志检查",
+      "description": "检查是否开启慢查询日志",
+      "command": "SHOW VARIABLES LIKE 'slow_query_log';",
+      "expected": "ON",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "GB/T 36960-2018-安全审计"
+    },
+    {
+      "id": "GBT36960-012",
+      "name": "错误日志检查",
+      "description": "检查错误日志配置",
+      "command": "SHOW VARIABLES LIKE 'log_error';",
+      "expected": ".err",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "安全审计",
+      "compliance": "GB/T 36960-2018-安全审计"
+    },
+    {
+      "id": "GBT36960-013",
+      "name": "数据加密传输检查",
+      "description": "检查是否启用SSL加密连接",
+      "command": "SHOW VARIABLES LIKE 'have_ssl';",
+      "expected": "YES",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "通信安全",
+      "compliance": "GB/T 36960-2018-通信安全"
+    },
+    {
+      "id": "GBT36960-014",
+      "name": "绑定地址检查",
+      "description": "检查数据库是否绑定到特定地址",
+      "command": "SHOW VARIABLES LIKE 'bind_address';",
+      "expected": "127.0.0.1",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "网络安全",
+      "compliance": "GB/T 36960-2018-网络安全"
+    },
+    {
+      "id": "GBT36960-015",
+      "name": "端口绑定检查",
+      "description": "检查数据库端口是否为默认端口",
+      "command": "SHOW VARIABLES LIKE 'port';",
+      "expected": "3306",
+      "check_type": "not_equals",
+      "severity": "medium",
+      "category": "网络安全",
+      "compliance": "GB/T 36960-2018-网络安全"
+    },
+    {
+      "id": "GBT36960-016",
+      "name": "最大连接数检查",
+      "description": "检查最大连接数配置",
+      "command": "SHOW VARIABLES LIKE 'max_connections';",
+      "expected": "max_connections",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资源控制",
+      "compliance": "GB/T 36960-2018-资源控制"
+    },
+    {
+      "id": "GBT36960-017",
+      "name": "连接超时检查",
+      "description": "检查连接超时配置",
+      "command": "SHOW VARIABLES LIKE 'wait_timeout';",
+      "expected": "wait_timeout",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "资源控制",
+      "compliance": "GB/T 36960-2018-资源控制"
+    },
+    {
+      "id": "GBT36960-018",
+      "name": "数据文件权限检查",
+      "description": "检查数据文件目录权限",
+      "command": "ls -ld /var/lib/mysql 2>/dev/null || ls -ld /data/mysql 2>/dev/null",
+      "expected": "drwx",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "数据安全",
+      "compliance": "GB/T 36960-2018-数据安全"
+    },
+    {
+      "id": "GBT36960-019",
+      "name": "备份策略检查",
+      "description": "检查是否存在备份文件或备份脚本",
+      "command": "ls -l /backup/mysql* 2>/dev/null || ls -l /data/backup/*mysql* 2>/dev/null || echo 'not found'",
+      "expected": "backup",
+      "check_type": "contains",
+      "severity": "high",
+      "category": "备份恢复",
+      "compliance": "GB/T 36960-2018-备份恢复"
+    },
+    {
+      "id": "GBT36960-020",
+      "name": "运行用户检查",
+      "description": "检查数据库是否使用专用用户运行",
+      "command": "ps -ef | grep mysqld | grep -v grep | awk '{print $1}'",
+      "expected": "mysql",
+      "check_type": "contains",
+      "severity": "medium",
+      "category": "运行安全",
+      "compliance": "GB/T 36960-2018-运行安全"
+    }
+  ]
+}

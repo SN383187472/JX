@@ -1,0 +1,88 @@
+{
+    "name": "Tomcat 信息收集规则",
+    "version": "1.0.0",
+    "description": "Tomcat 版本和配置信息收集",
+    "compliance": ["信息收集"],
+    "rules": [
+        {
+            "id": "TOMCAT-INFO-001",
+            "name": "Tomcat版本信息",
+            "description": "收集Tomcat版本信息",
+            "command": "$TOMCAT_HOME/bin/version.sh 2>/dev/null || echo 'TOMCAT_HOME not set'",
+            "check_type": "info",
+            "category": "版本信息"
+        },
+        {
+            "id": "TOMCAT-INFO-002",
+            "name": "JVM版本信息",
+            "description": "收集JVM版本信息",
+            "command": "java -version 2>&1",
+            "check_type": "info",
+            "category": "版本信息"
+        },
+        {
+            "id": "TOMCAT-INFO-003",
+            "name": "JVM内存配置",
+            "description": "收集JVM内存配置",
+            "command": "ps -ef | grep tomcat | grep -v grep | grep -oE 'Xm[xs][0-9]+[mMgG]' | tr ' ' '\\n'",
+            "check_type": "info",
+            "category": "资源配置"
+        },
+        {
+            "id": "TOMCAT-INFO-004",
+            "name": "运行用户",
+            "description": "收集Tomcat运行用户",
+            "command": "ps -ef | grep tomcat | grep -v grep | awk '{print $1}' | head -1",
+            "check_type": "info",
+            "category": "运行状态"
+        },
+        {
+            "id": "TOMCAT-INFO-005",
+            "name": "监听端口",
+            "description": "收集Tomcat监听端口",
+            "command": "netstat -tlnp 2>/dev/null | grep java || ss -tlnp | grep java",
+            "check_type": "info",
+            "category": "网络配置"
+        },
+        {
+            "id": "TOMCAT-INFO-006",
+            "name": "安装目录",
+            "description": "收集Tomcat安装目录信息",
+            "command": "ls -la $TOMCAT_HOME/ 2>/dev/null || echo 'TOMCAT_HOME not set'",
+            "check_type": "info",
+            "category": "安装信息"
+        },
+        {
+            "id": "TOMCAT-INFO-007",
+            "name": "已部署应用",
+            "description": "收集已部署的Web应用",
+            "command": "ls -la $TOMCAT_HOME/webapps/ 2>/dev/null || echo 'TOMCAT_HOME not set'",
+            "check_type": "info",
+            "category": "应用信息"
+        },
+        {
+            "id": "TOMCAT-INFO-008",
+            "name": "连接器配置",
+            "description": "收集连接器配置信息",
+            "command": "grep -E '<Connector' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--'",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "TOMCAT-INFO-009",
+            "name": "虚拟主机配置",
+            "description": "收集虚拟主机配置",
+            "command": "grep -E '<Host' $TOMCAT_HOME/conf/server.xml 2>/dev/null | grep -v '<!--'",
+            "check_type": "info",
+            "category": "配置信息"
+        },
+        {
+            "id": "TOMCAT-INFO-010",
+            "name": "用户配置",
+            "description": "收集Tomcat用户配置",
+            "command": "grep -E '<user' $TOMCAT_HOME/conf/tomcat-users.xml 2>/dev/null | grep -v '<!--'",
+            "check_type": "info",
+            "category": "认证配置"
+        }
+    ]
+}
